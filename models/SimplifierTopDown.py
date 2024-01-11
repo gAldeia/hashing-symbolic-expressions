@@ -8,4 +8,4 @@ reg = NSGAIIRegressor(
     }
 ) 
 
-name = 'SimplifierTopDownNSGA2'
+name = "Simplifier Top Down"

@@ -7,6 +7,7 @@ import numpy as np
 
 import sys
 import os
+import importlib.util
 
 # pragmatically getting information about the number of generations
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -54,31 +55,34 @@ objectives = ['error', 'size']
 
 # Should be the folder name
 # Comment models in/out in models and models_nice to include/exclude from results
-models = [
-    "SimplifierBottomUpNSGA2",
-    "SimplifierTopDownNSGA2",
-    "VanillaNSGA2"
+model_filenames = [
+    file for file in glob('../models/*.py') if not file.split('/')[-1].startswith('_')
 ]
+
+model_folder = [
+    filename.split('../models/')[1].split('.py')[0]
+    for filename in model_filenames
+]
+
+# Extracting the name from the files
+def get_name_value(script_path):
+    with open(script_path, 'r') as file:
+       lines = file.readlines()
+       for line in lines:
+        if line.strip().startswith('name ='):
+            return line.split('=')[1].strip().replace("'", "\"").replace("\"", "")
 
 model_nice = [
-    "Simplifier Bottom Up",
-    "Simplifier Top Down",
-    "Without simplification",
+    get_name_value(filename)
+    for filename in model_filenames
 ]
 
-assert len(models) == len(model_nice), "Unmatching sizes of models and model_nice"
+print(model_filenames, model_nice)
 
-nice_model_labels = {k:v for k,v in zip(models,model_nice)}
-nice_to_ugly = {v:k for k,v in nice_model_labels.items()}
-
-markers = ('^','o', 's', 'p', 'P', 'h', 'D', 'P', 'X', 'v', '<', '>','*',)
+markers = ('^','o', 's', 'p', 'P', 'h', 'D', 'P', 'X', 'v', '<', '>','*')
 order = model_nice #sorted(model_nice)
 
-marker_choice = {
-    "Simplifier Bottom Up"   : 'h',
-    "Simplifier Top Down"    : 'P',
-    "Without simplification" : 'D'
-}
+marker_choice = { model: marker for (model, marker) in zip(model_nice, markers) }
 
 # how we sample the generations
 gens = range(tot_gens)                         # all generations (slower)
@@ -91,8 +95,8 @@ gens = range(tot_gens)                         # all generations (slower)
 # Loading overall results
 results = []
 for dataset in datasets: # this will iterate over keys
-    for model in models:
-        for file in glob(f"{results_path}/{dataset}/{model.replace("NSGA2", "")}*/*.json"):
+    for model in model_folder:
+        for file in glob(f"{results_path}/{dataset}/{model}/*.json"):
             df = pd.read_json(file, typ='series')
 
             # Filtering columns if needed
@@ -103,7 +107,6 @@ for dataset in datasets: # this will iterate over keys
 results_df = pd.DataFrame(data=results, columns=indxs)
 
 # Beautifying it
-results_df['model']   = results_df['model'].apply(lambda m: nice_model_labels[m])
 results_df['dataset'] = results_df['dataset'].apply(lambda t: dnames_to_nice[t])
 
 print(results_df.shape)

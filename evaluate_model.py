@@ -84,7 +84,7 @@ def evaluate_model(
     if hasattr(estimator, 'logbook_') and estimator.logbook_ is not None:
         save_evolution(estimator,name,dataset,random_state,rdir,repeat)
 
-    if "NSGA2" in name:
+    if "NSGAII" in estimator.__class__.__name__:
         model      = str(estimator.best_estimator_).replace("ARG", "x_")
         size       = len(estimator.best_estimator_)
         complexity = get_complexity(estimator.best_estimator_)

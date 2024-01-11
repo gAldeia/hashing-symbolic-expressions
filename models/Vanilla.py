@@ -7,4 +7,4 @@ reg = NSGAIIRegressor(
     }
 ) 
 
-name = 'VanillaNSGA2'
+name = "Without simplification"
