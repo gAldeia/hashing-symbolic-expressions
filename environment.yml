@@ -1,0 +1,19 @@
+name: hashing-experiments
+channels:
+    - conda-forge
+dependencies:
+    - python
+    - jupyter
+    - ipython
+    - pip
+    - pip:
+      - deap
+      - numpy
+      - pandas
+      - matplotlib
+      - seaborn
+      - scikit-learn
+      - scipy
+      - lshashpy3
+      - pmlb
+      - statannotations
