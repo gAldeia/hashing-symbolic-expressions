@@ -124,6 +124,8 @@ class HashSimplifier:
     
     
     def simplify_pop_top_down(self, pop, X, y):
+        self.n_simplifications = 0
+        self.n_new_hashes      = 0
 
         new_pop = []
         for idx, ind in enumerate(pop):

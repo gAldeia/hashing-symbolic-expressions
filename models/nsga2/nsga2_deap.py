@@ -27,7 +27,7 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random, simplify, X, y):
     stats.register("max", np.max, axis=0)
 
     logbook = tools.Logbook()
-    logbook.header = ['gen', 'evals', 'n_simplifications', 'n_new_hashes'] + \
+    logbook.header = ['gen', 'evals', 'best_size', 'n_simplifications', 'n_new_hashes'] + \
                      [f"{stat} {partition} {objective}"
                          for stat in ['avg', 'med', 'std', 'min', 'max']
                          for partition in ['train', 'val']
@@ -53,8 +53,13 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random, simplify, X, y):
     # no actual selection is done
     pop = toolbox.survive(pop, len(pop))
 
+    # Finding the size (obj2) of the individual with best error (obj1)
+    best_size = max( range(len(pop)),
+        key=lambda index: ( pop[index].fitness.values[0]*pop[index].fitness.weights[0],
+                            pop[index].fitness.values[1]*pop[index].fitness.weights[1]) )
+    
     record = stats.compile(pop)
-    logbook.record(gen=0, evals=len(invalid_ind),
+    logbook.record(gen=0, evals=len(invalid_ind), best_size=pop[best_size].fitness.values[1],
                    n_simplifications=n_simplifications,
                    n_new_hashes=n_new_hashes,
                    **record)
@@ -103,9 +108,13 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random, simplify, X, y):
         # Select the next generation population
         pop = toolbox.survive(pop + offspring, MU)
 
+        best_size = max( range(len(pop)),
+            key=lambda index: ( pop[index].fitness.values[0]*pop[index].fitness.weights[0],
+                                pop[index].fitness.values[1]*pop[index].fitness.weights[1]) )
+        
         # Log and verbose
         record = stats.compile(pop)
-        logbook.record(gen=gen, evals=len(offspring), 
+        logbook.record(gen=gen, evals=len(offspring), best_size=pop[best_size].fitness.values[1],
                        n_simplifications=n_simplifications,
                        n_new_hashes=n_new_hashes,
                        **record)
