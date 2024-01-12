@@ -15,8 +15,16 @@ if __name__ == '__main__':
     parser.add_argument('-experiment',action='store',dest='EXPERIMENT', type=str,              
                         default="evaluate_model",help=".py experiment file")
     parser.add_argument('-dataset',action='store',dest='DATASET',type=str,              
-                        default=('d_airfoil,d_concrete,d_enc,d_enh,'
-                                 'd_housing,d_tower,d_uball5d,d_yacht'))
+                        default=(
+                            'd_airfoil,',
+                            'd_concrete,'
+                            'd_enc,'
+                            'd_enh,'
+                            'd_housing,'
+                            'd_tower,'
+                            'd_uball5d,'
+                            'd_yacht'
+                            ))
     parser.add_argument('-repeats',action='store',dest='REPEATS', type=int,              
                         default=1)
     parser.add_argument('-repeat_number',action='store',dest='REPEAT_N', 

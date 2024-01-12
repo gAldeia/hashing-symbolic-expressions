@@ -1,6 +1,6 @@
 kwargs = {
-    'pop_size'              : 12, 
-    'max_gen'               : 10,
+    'pop_size'              : 100, 
+    'max_gen'               : 500,
     'max_depth'             : 10,
     'max_size'              : 100,
     'objectives'            : ['error', 'size'],
