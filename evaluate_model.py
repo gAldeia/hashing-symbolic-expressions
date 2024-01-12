@@ -40,7 +40,7 @@ def read_data(dataset, random_state, data_dir):
 
 
 def save_evolution(estimator, name, dataset, random_state, rdir, repeat):
-    logbook = pd.DataFrame(columns=['gen', 'evals', 'n_simplifications', 'n_new_hashes'] + 
+    logbook = pd.DataFrame(columns=['gen', 'evals', 'best_size', 'n_simplifications', 'n_new_hashes'] + 
                             [f"{stat} {partition} {objective}"
                              for stat in ['avg', 'med', 'std', 'min', 'max']
                              for partition in ['train', 'val']
@@ -48,7 +48,7 @@ def save_evolution(estimator, name, dataset, random_state, rdir, repeat):
     
     for item in estimator.logbook_:
         logbook.loc[item['gen']] = (
-            item['gen'], item['evals'], item['n_simplifications'], item['n_new_hashes'],
+            item['gen'], item['evals'], item['best_size'], item['n_simplifications'], item['n_new_hashes'],
             *item['avg'], *item['med'], *item['std'], *item['min'], *item['max']
         )
 
