@@ -6,7 +6,7 @@ __pycache__/
 *$py.class
 
 # Downloaded datasets (PMLB cache repo)
-data/ 
+data/pmlb
 
 # Plots (lot of files that will be overriten everytime)
 results
