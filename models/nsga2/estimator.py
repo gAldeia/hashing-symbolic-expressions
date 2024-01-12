@@ -35,6 +35,7 @@ class NSGAIIEstimator(BaseEstimator):
         simplification_method="bottom_up",
         verbosity=0,
         mode='regression',
+        random_state=None,
         **kwargs
     ):
         self.pop_size=pop_size
@@ -50,11 +51,12 @@ class NSGAIIEstimator(BaseEstimator):
         self.simplify = simplify
         self.simplification_method=simplification_method
         self.objectives = objectives
+        self.random_state=random_state
         self.mode=mode
 
         self._is_fitted = False
 
-        self.random = np.random.default_rng()
+        self.random = np.random.default_rng(self.random_state)
 
 
     def _fitness_validation(self, ind, X, y):
@@ -94,7 +96,12 @@ class NSGAIIEstimator(BaseEstimator):
             pset.addPrimitive(func, arity)
 
         # This is required to have optimizable paremeters
-        pset.addEphemeralConstant("rand100", ERC100)
+        if self.random_state is not None:
+            # reseeding the ERC
+            def my_seeded_ERC100(): return self.random.uniform(-100,100)
+            pset.addEphemeralConstant("rand100", my_seeded_ERC100)
+        else:
+            pset.addEphemeralConstant("rand100", ERC100)
 
         # DEAP Toolbox
         toolbox = base.Toolbox()
@@ -124,11 +131,27 @@ class NSGAIIEstimator(BaseEstimator):
         toolbox.register("evaluate", self._fitness_function, X=X_train, y=y_train)
         toolbox.register("evaluateValidation", self._fitness_validation, X=X_val, y=y_val)
 
-        # Variation operators: mutation 
-        toolbox.register("mutate", gp.mutNodeReplacement, pset=pset)
+        # Variation operators: mutations (4 types, and a main function)
+        toolbox.register("mutate_point", gp.mutNodeReplacement, pset=pset)
+        toolbox.register("mutate_delete", gp.mutShrink)
+        toolbox.register("mutate_subtree", gp.mutUniform, pset=pset, expr=toolbox.expr)
+        toolbox.register("mutate_insert", gp.mutInsert, pset=pset)
+
+        mutations = { "point"   : toolbox.mutate_point,
+                      "delete"  : toolbox.mutate_delete,
+                      "subtree" : toolbox.mutate_subtree,
+                      "insert"  : toolbox.mutate_insert   }
+        def mutation(ind):
+            mutation_to_apply = self.random.choice(["point","delete","subtree","insert"])
+            new_ind = mutations[mutation_to_apply](ind)
+            return new_ind
+        
+        # OBS: you may need to add `from inspect import isclass` in deap gp.py source code...
+        
+        toolbox.register("mutate", mutation)
         toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=self.max_depth))	
         toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=self.max_size))
-
+        
         # Variation operators: crossover
         toolbox.register("mate", gp.cxOnePoint)
         toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=self.max_depth))

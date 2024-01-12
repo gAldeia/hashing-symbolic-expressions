@@ -5,7 +5,7 @@ import numpy as np
 from deap import gp
 
 
-def PTC2_deap(pset, min_, max_, max_size_sampler):
+def PTC2_deap(pset, min_, max_, max_size_sampler, type_=None):
     # Function to emulate PTC2 inside DEAP
     
     # From deap docs: 
@@ -26,12 +26,12 @@ def PTC2_deap(pset, min_, max_, max_size_sampler):
         pset.local_size_counter += 1
         return depth>height or pset.local_size_counter>max_size
 
-    return gp.generate(pset, min_, max_, condition, None)
+    return gp.generate(pset, min_, max_, condition, type_)
 
-
-_deap_random = np.random.default_rng()
 
 # Ephemeral random constants (this is how we add constants into our trees)
+_deap_random = np.random.default_rng()
+
 def ERC1(): return _deap_random.uniform(-1,1)
 def ERC100(): return _deap_random.uniform(-100,100)
 
