@@ -21,8 +21,8 @@ sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.0})
 
 results_path = "../results"
 
-step_size = 10 # How many generations to ignore between two points in the plots
-skip_gens = 0 # How many initial generations to skip 
+step_size = 1 # How many generations to ignore between two points in the plots
+skip_gens = 1 # How many initial generations to skip 
 tot_gens  = models_kwargs['max_gen']
 
 if not os.path.exists('../paper/figs'):
@@ -76,6 +76,7 @@ model_nice = [
     get_name_value(filename)
     for filename in model_filenames
 ]
+nice_to_ugly = {k:v for k,v in zip(model_nice,model_folder)}
 
 print(model_filenames, model_nice)
 
@@ -85,8 +86,8 @@ order = model_nice #sorted(model_nice)
 marker_choice = { model: marker for (model, marker) in zip(model_nice, markers) }
 
 # how we sample the generations
-gens = range(tot_gens)                         # all generations (slower)
-# gens = range(skip_gens, tot_gens, step_size)   # skipping generations
+# gens = range(tot_gens)                         # all generations (slower)
+gens = range(skip_gens, tot_gens, step_size)   # skipping generations
 # gens = [int(np.floor(g)) for g in np.logspace( # skipping with log scale
 #                                        np.log10(0.99+skip_gens),
 #                                        np.log10(tot_gens),
