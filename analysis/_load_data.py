@@ -21,8 +21,8 @@ sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.0})
 
 results_path = "../results"
 
-step_size = 1 # How many generations to ignore between two points in the plots
-skip_gens = 1 # How many initial generations to skip 
+step_size = 25 # How many generations to ignore between two points in the plots
+skip_gens = 10 # How many initial generations to skip 
 tot_gens  = models_kwargs['max_gen']
 
 if not os.path.exists('../paper/figs'):
