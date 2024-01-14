@@ -8,5 +8,5 @@ kwargs = {
     'initialization'        : 'uniform',
     'pick_criteria'         : 'error',
     'validation_size'       : 0.33,
-    'verbosity'             : False,
+    'verbosity'             : 1,
 }

@@ -33,6 +33,7 @@ class NSGAIIEstimator(BaseEstimator):
         validation_size: float = 0.0, 
         simplify=True,
         simplification_method="bottom_up",
+        simplification_tolerance=1e-6,
         verbosity=0,
         mode='regression',
         random_state=None,
@@ -50,6 +51,7 @@ class NSGAIIEstimator(BaseEstimator):
         self.validation_size=validation_size
         self.simplify = simplify
         self.simplification_method=simplification_method
+        self.simplification_tolerance=simplification_tolerance
         self.objectives = objectives
         self.random_state=random_state
         self.mode=mode
@@ -163,7 +165,8 @@ class NSGAIIEstimator(BaseEstimator):
         toolbox.register("survive", tools.selNSGA2)
 
         # Optimize individual
-        simplifier = HashSimplifier(creator.Individual, creator.FitnessMulti, toolbox)
+        simplifier = HashSimplifier(creator.Individual, creator.FitnessMulti, toolbox,
+                                    tolerance=self.simplification_tolerance)
         simplifier.initialize(pset, X_train, y_train)
 
         toolbox.register("get_n_simplifications", lambda: simplifier.n_simplifications)
