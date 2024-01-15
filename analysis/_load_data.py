@@ -34,8 +34,8 @@ datasets = [
     'd_enc',
     'd_enh',
     'd_housing',
-    'd_tower',
-    'd_uball5d',
+    #'d_tower',
+    #'d_uball5d',
     'd_yacht'
 ]
 datasets_nice = [
@@ -44,12 +44,14 @@ datasets_nice = [
     "Energy Cooling",
     'Energy Heating',
     "Housing",
-    "Tower",
-    "UBall 5d",
+    #"Tower",
+    #"UBall 5d",
     "Yacht"
 ]
 dnames_to_nice = {k:v for k,v in zip(datasets, datasets_nice)}
 dnames_to_ugly = {v:k for k,v in dnames_to_nice.items()}
+
+col_wrap = 3
 
 objectives = ['error', 'size']
 
@@ -81,7 +83,7 @@ nice_to_ugly = {k:v for k,v in zip(model_nice,model_folder)}
 print(model_filenames, model_nice)
 
 markers = ('^','o', 's', 'p', 'P', 'h', 'D', 'P', 'X', 'v', '<', '>','*')
-order = model_nice #sorted(model_nice)
+order = sorted(model_nice)
 
 marker_choice = { model: marker for (model, marker) in zip(model_nice, markers) }
 

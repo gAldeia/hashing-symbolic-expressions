@@ -20,3 +20,4 @@ dependencies:
       - pandas
       - networkx
       - sympy
+      - statsmodels
