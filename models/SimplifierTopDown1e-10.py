@@ -9,4 +9,4 @@ reg = NSGAIIRegressor(
     }
 ) 
 
-name = "Simplifier Top Down 1e-10"
+name = "Top Down 1e-10"

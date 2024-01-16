@@ -7,4 +7,4 @@ reg = NSGAIIRegressor(
     }
 ) 
 
-name = "Without simplification"
+name = "Without simplify"
