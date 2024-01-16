@@ -36,7 +36,7 @@ datasets = [
     'd_housing',
     #'d_tower',
     #'d_uball5d',
-    'd_yacht'
+    #'d_yacht'
 ]
 datasets_nice = [
     'Airfoil',
@@ -46,12 +46,12 @@ datasets_nice = [
     "Housing",
     #"Tower",
     #"UBall 5d",
-    "Yacht"
+    #"Yacht"
 ]
 dnames_to_nice = {k:v for k,v in zip(datasets, datasets_nice)}
 dnames_to_ugly = {v:k for k,v in dnames_to_nice.items()}
 
-col_wrap = 3
+col_wrap = 2
 
 objectives = ['error', 'size']
 
