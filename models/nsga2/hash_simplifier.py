@@ -8,7 +8,8 @@ import bisect
 import numpy as np
 
 class HashSimplifier:
-    def __init__(self, Individual, Fitness, toolbox, hash_len=32, tolerance=1e-6):
+    def __init__(self, Individual, Fitness, toolbox,
+                 hash_len=32, tolerance=1e-6):
         self.Individual = Individual
         self.Fitness = Fitness
         self.toolbox = toolbox
@@ -54,8 +55,7 @@ class HashSimplifier:
         self.initialized = True
 
 
-    def simplify_pop_bottom_up(self, pop, X, y):
-
+    def simplify_pop_bottom_up(self, pop, X, y, replace_pop=True):
         self.n_simplifications = 0
         self.n_new_hashes      = 0
 
@@ -120,20 +120,21 @@ class HashSimplifier:
             new_ind.fitness.values = pop[idx].fitness.values
             new_pop.append(new_ind)
 
-        return new_pop
+        if replace_pop:
+            return new_pop
+        return pop
     
-    
-    def simplify_pop_top_down(self, pop, X, y):
+
+    def simplify_pop_top_down(self, pop, X, y, replace_pop=True):
         self.n_simplifications = 0
         self.n_new_hashes      = 0
 
         new_pop = []
         for idx, ind in enumerate(pop):
-
             indexes = range(1, len(ind))[1:]
             while len(indexes)>1:
                 idx_node = indexes[0]
-                indexes = indexes[1:]
+                indexes  = indexes[1:]
 
                 ind_subtree = ind[ind.searchSubtree(idx_node)]
 
@@ -195,4 +196,6 @@ class HashSimplifier:
             new_ind.fitness.values = pop[idx].fitness.values
             new_pop.append(new_ind)
 
-        return new_pop
+        if replace_pop:
+            return new_pop
+        return pop

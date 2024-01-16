@@ -6,7 +6,8 @@ from deap.benchmarks.tools import hypervolume
 import numpy as np
 
 
-def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random, simplify, X, y):
+def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random, 
+               simplify, simplify_only_last, X, y):
 
     # NGEN = 250
     # MU = 100
@@ -45,9 +46,16 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random, simplify, X, y):
     n_new_hashes      = 0
     if simplify: # At this point, no simplification is expected, but a huge number
                  # of new hashes should be created
-        pop = toolbox.simplify_pop(pop, X, y)
+        pop = toolbox.simplify_pop(pop, X, y, replace_pop=(not simplify_only_last))
+
         n_simplifications = toolbox.get_n_simplifications()
         n_new_hashes      = toolbox.get_n_new_hashes()
+
+        if not simplify_only_last:
+            # fit to get rid or uncertainty inserted by the simplify tolerance
+            fitnesses = toolbox.map(toolbox.evaluate, pop)
+            for ind, fit in zip(pop, fitnesses):
+                ind.fitness.values = fit
 
     # This is just to assign the crowding distance to the individuals
     # no actual selection is done
@@ -95,15 +103,18 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random, simplify, X, y):
         n_simplifications = 0
         n_new_hashes      = 0
         if simplify:
-            offspring = toolbox.simplify_pop(offspring, X, y)
+            gen_update = (gen==NGEN-1) if simplify_only_last else True
+
+            offspring = toolbox.simplify_pop(offspring, X, y, replace_pop=gen_update)
 
             n_simplifications = toolbox.get_n_simplifications()
             n_new_hashes      = toolbox.get_n_new_hashes()
 
-            # fit to get rid or uncertainty inserted by the simplify tolerance
-            fitnesses = toolbox.map(toolbox.evaluate, offspring)
-            for ind, fit in zip(offspring, fitnesses):
-                ind.fitness.values = fit
+            if gen_update:
+                # fit to get rid or uncertainty inserted by the simplify tolerance
+                fitnesses = toolbox.map(toolbox.evaluate, offspring)
+                for ind, fit in zip(offspring, fitnesses):
+                    ind.fitness.values = fit
 
         # Select the next generation population
         pop = toolbox.survive(pop + offspring, MU)

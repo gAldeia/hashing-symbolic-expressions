@@ -33,7 +33,8 @@ class NSGAIIEstimator(BaseEstimator):
         validation_size: float = 0.0, 
         simplify=True,
         simplification_method="bottom_up",
-        simplification_tolerance=1e-6,
+        simplification_tolerance=1e-16,
+        simplify_only_last=False,
         verbosity=0,
         mode='regression',
         random_state=None,
@@ -52,6 +53,7 @@ class NSGAIIEstimator(BaseEstimator):
         self.simplify = simplify
         self.simplification_method=simplification_method
         self.simplification_tolerance=simplification_tolerance
+        self.simplify_only_last=simplify_only_last
         self.objectives = objectives
         self.random_state=random_state
         self.mode=mode
@@ -206,7 +208,8 @@ class NSGAIIEstimator(BaseEstimator):
 
             archive, logbook = nsga2_deap(
                 self.toolbox_, self.max_gen, self.pop_size, self.cx_prob,
-                self.verbosity, self.random, self.simplify, X_train, y_train)
+                self.verbosity, self.random, self.simplify, 
+                self.simplify_only_last, X_train, y_train)
 
         self.archive_ = archive
         self.logbook_ = logbook
