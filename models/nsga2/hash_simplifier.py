@@ -122,6 +122,8 @@ class HashSimplifier:
 
         if replace_pop:
             return new_pop
+        
+        n_simplifications=0# ignoring simplifications, as we are returning original pop
         return pop
     
 
@@ -198,4 +200,6 @@ class HashSimplifier:
 
         if replace_pop:
             return new_pop
+        
+        n_simplifications=0# ignoring simplifications, as we are returning original pop
         return pop
