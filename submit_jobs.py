@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
             batch_script = (
 f"""#!/usr/bin/bash 
-#SBATCH --output={args.RDIR}/cart_%A_%a.txt 
+#SBATCH --output=jobfiles/cart_%A_%a.txt 
 #SBATCH --job-name={job_name} 
 #SBATCH --partition={args.QUEUE} 
 #SBATCH --cpus-per-task={args.N_JOBS} 
@@ -194,8 +194,8 @@ declare -i row
 row+=1
 echo "head -$row {jobarrayfile} | tail -n +$row"
 cmd=$(head -$row {jobarrayfile} | tail -n +$row)
-echo $CONDA_EXE run -n cart $cmd
-$CONDA_EXE run -n cart $cmd
+echo $cmd
+$cmd
 """
             )
 

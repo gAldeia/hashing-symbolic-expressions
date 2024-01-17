@@ -2,7 +2,7 @@ name: hashing-experiments
 channels:
     - conda-forge
 dependencies:
-    - python=3.12.1
+    - python
     - jupyter
     - ipython
     - pip
