@@ -34,7 +34,7 @@ datasets = [
     'd_enc',
     'd_enh',
     'd_housing',
-    'd_tower',
+    #'d_tower',
     #'d_uball5d',
     #'d_yacht'
 ]
@@ -44,7 +44,7 @@ datasets_nice = [
     "Energy Cooling",
     'Energy Heating',
     "Housing",
-    "Tower",
+    #"Tower",
     #"UBall 5d",
     #"Yacht"
 ]
