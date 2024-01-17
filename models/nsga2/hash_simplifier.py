@@ -9,7 +9,7 @@ import numpy as np
 
 class HashSimplifier:
     def __init__(self, Individual, Fitness, toolbox,
-                 hash_len=32, tolerance=1e-6):
+                 hash_len=32, tolerance=1e-16):
         self.Individual = Individual
         self.Fitness = Fitness
         self.toolbox = toolbox

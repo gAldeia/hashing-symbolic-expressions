@@ -1,7 +1,7 @@
 kwargs = {
     'pop_size'              : 100, 
-    'max_gen'               : 100,
-    'max_depth'             : 6,
+    'max_gen'               : 255,
+    'max_depth'             : 7,
     'max_size'              : 64,
     'objectives'            : ['error', 'size'],
     'cx_prob'               : 1/(4+1), # n_mutations+1
