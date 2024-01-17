@@ -21,7 +21,7 @@ sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.0})
 
 results_path = "../results"
 
-step_size = 25 # How many generations to ignore between two points in the plots
+step_size = 10 # How many generations to ignore between two points in the plots
 skip_gens = 10 # How many initial generations to skip 
 tot_gens  = models_kwargs['max_gen']
 
@@ -34,7 +34,7 @@ datasets = [
     'd_enc',
     'd_enh',
     'd_housing',
-    #'d_tower',
+    'd_tower',
     #'d_uball5d',
     #'d_yacht'
 ]
@@ -44,7 +44,7 @@ datasets_nice = [
     "Energy Cooling",
     'Energy Heating',
     "Housing",
-    #"Tower",
+    "Tower",
     #"UBall 5d",
     #"Yacht"
 ]
@@ -83,13 +83,16 @@ nice_to_ugly = {k:v for k,v in zip(model_nice,model_folder)}
 print(model_filenames, model_nice)
 
 markers = ('^','o', 's', 'p', 'P', 'h', 'D', 'P', 'X', 'v', '<', '>','*')
-order = sorted(model_nice)
+
+# order = sorted(model_nice)
+order = ['Without simplify', 'Top Down', 'Bottom Up',
+         'Top Down (only last)', 'Bottom Up (only last)']
 
 marker_choice = { model: marker for (model, marker) in zip(model_nice, markers) }
 
 # how we sample the generations
 # gens = range(tot_gens)                         # all generations (slower)
-gens = range(skip_gens, tot_gens, step_size)   # skipping generations
+gens = list(range(skip_gens, tot_gens, step_size))+[tot_gens-1] # skipping generations
 # gens = [int(np.floor(g)) for g in np.logspace( # skipping with log scale
 #                                        np.log10(0.99+skip_gens),
 #                                        np.log10(tot_gens),
