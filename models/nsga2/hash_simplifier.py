@@ -9,7 +9,7 @@ import numpy as np
 
 class HashSimplifier:
     def __init__(self, Individual, Fitness, toolbox,
-                 hash_len=32, tolerance=1e-16):
+                 hash_len=32, tolerance=1e-20):
         self.Individual = Individual
         self.Fitness = Fitness
         self.toolbox = toolbox
@@ -61,63 +61,95 @@ class HashSimplifier:
 
         new_pop = []
         for idx, ind in enumerate(pop):
-            indexes = list(enumerate(ind))[-1:0:-1]
+            #print(f'simplifying ind idx{idx} {ind}')
+            
+            indexes = list(enumerate(ind))[::-1]
+            #print(f' - list of indexes {indexes}')
             for idx_node, node in indexes:
+                #print(f'   - {idx_node}, {node.name}')
                 ind_subtree = ind[ind.searchSubtree(idx_node)]
+                #print(f'   - subtree {ind_subtree}')
 
                 if len(ind_subtree) <=1:
+                    #print(f'     - skipping')
                     continue
 
                 ind_subtree = self.Individual(ind_subtree)
+                #print(f'     - cast into ind {ind_subtree}')
 
                 # Semantics to be hashed
                 h = self._predict_hash(ind_subtree, X, y)
+                #print(f'     - semantics {h[:3]}')
+
+                if np.all(np.isnan(h)):
+                    #print(f'     - bad semantics')
+                    continue
 
                 # Hash for the individual
                 binary_hash = self.lsh._hash(self.lsh.uniform_planes[0], h)
-                
+                #print(f'     - hash {binary_hash}')
+
                 # Querying for the closest result
                 res = self.lsh.query(h, num_results=1, distance_func="euclidean")
                 
-                try:
+                closest_hash = None
+                try: 
+                   # print(f'       - query {res}')
                     ((v, extra), d) = res[0]
-                    binary_hash = self.lsh._hash(self.lsh.uniform_planes[0], v)
+                    closest_hash = self.lsh._hash(self.lsh.uniform_planes[0], v)
+                    #print(f'       - closest hash {closest_hash} with dist {d}')
                 except IndexError:
+                    #print(f'       - indexing it (failed to find any hash)')
                     self.n_new_hashes += 1
                     self.lsh.index( h )
                     self.pop_hash[binary_hash] = [ind_subtree]
 
                     continue
 
+                #print(f'       - tolerance check {d} <= {self.tolerance * len(y)}')    
                 if d <= self.tolerance * len(y): # they are similar
+                    #print(f'         - success, trying to simplify')
+                
                     bisect.insort(
-                        self.pop_hash[binary_hash], ind_subtree,
-                        key=lambda i: len(i))
+                        self.pop_hash[closest_hash], ind_subtree,
+                        key=lambda ind: len(ind))
                     
-                    index_smlst = 0
-
-                    if len(self.pop_hash[binary_hash][index_smlst]) \
-                    <  len(ind):
+                    if len(self.pop_hash[closest_hash][0]) \
+                    <  len(ind_subtree):
+                        
+                        #print(f'         - can be simplified cause len {len(self.pop_hash[closest_hash][0])} of {self.pop_hash[closest_hash][0]} < len {len(ind_subtree)} of {ind_subtree}')
+                        
                         # Several simplifications can happen in a single individual
                         self.n_simplifications += 1
 
                         ind = ind[:idx_node] + \
-                                self.pop_hash[binary_hash][index_smlst] + \
+                                self.pop_hash[closest_hash][0] + \
                                 ind[idx_node+len(ind_subtree):]
 
                         # We need to wrap here to allow the loop to continue
                         # (as it uses some of PrimitiveTree methods)
                         ind = self.Individual(ind)
-                    
+                        #print(f'         - result {ind}')
+                    else:
+                        #print(f'         - CANNOT be simplified cause len {len(self.pop_hash[closest_hash][0])} of {self.pop_hash[closest_hash][0]} >= len {len(ind_subtree)} of {ind_subtree}')
+                        pass
+
                 else: # Making it a new semantics item
+                    #print(f'         - not simplifiable, will insert it')
                     self.n_new_hashes += 1
                     self.lsh.index( h )
-                    self.pop_hash[binary_hash] = [ind_subtree]
+                    if binary_hash not in self.pop_hash:
+                        self.pop_hash[binary_hash] = [ind_subtree]
+                    else:
+                        self.pop_hash[binary_hash].append(ind_subtree)
+
 
             # Wrapping the list into the individual again
             new_ind = self.Individual(ind)
             new_ind.fitness = self.Fitness()
             new_ind.fitness.values = pop[idx].fitness.values
+            #print(f'  - final result {new_ind}')
+
             new_pop.append(new_ind)
 
         if replace_pop:
@@ -133,7 +165,7 @@ class HashSimplifier:
 
         new_pop = []
         for idx, ind in enumerate(pop):
-            indexes = range(1, len(ind))[1:]
+            indexes = range(1, len(ind))
             while len(indexes)>1:
                 idx_node = indexes[0]
                 indexes  = indexes[1:]
@@ -148,15 +180,19 @@ class HashSimplifier:
                 # Semantics to be hashed
                 h = self._predict_hash(ind_subtree, X, y)
 
+                if np.all(np.isnan(h)):
+                    continue
+
                 # Hash for the individual
                 binary_hash = self.lsh._hash(self.lsh.uniform_planes[0], h)
                 
                 # Querying for the closest result
                 res = self.lsh.query(h, num_results=1, distance_func="euclidean")
                 
+                closest_hash = None
                 try:
                     ((v, extra), d) = res[0]
-                    binary_hash = self.lsh._hash(self.lsh.uniform_planes[0], v)
+                    closest_hash = self.lsh._hash(self.lsh.uniform_planes[0], v)
                 except IndexError:
                     self.n_new_hashes += 1
                     self.lsh.index( h )
@@ -166,18 +202,16 @@ class HashSimplifier:
 
                 if d <= self.tolerance * len(y): # they are similar
                     bisect.insort(
-                        self.pop_hash[binary_hash], ind_subtree,
-                        key=lambda i: len(i))
+                        self.pop_hash[closest_hash], ind_subtree,
+                        key=lambda ind: len(ind))
                     
-                    index_smlst = 0
-
-                    if len(self.pop_hash[binary_hash][index_smlst]) \
+                    if len(self.pop_hash[binary_hash][0]) \
                     <  len(ind):
                         # Several simplifications can happen in a single individual
                         self.n_simplifications += 1
                         
                         ind = ind[:idx_node] + \
-                                self.pop_hash[binary_hash][index_smlst] + \
+                                self.pop_hash[binary_hash][0] + \
                                 ind[idx_node+len(ind_subtree):]
 
                         # We need to wrap here to allow the loop to continue
@@ -185,12 +219,16 @@ class HashSimplifier:
                         ind = self.Individual(ind)
 
                         # If we simplified, then we need to update the index list
+                        # (we also skip the first)
                         indexes = range(idx_node, len(ind))[1:]
 
                 else: # Making it a new semantics item
                     self.n_new_hashes += 1
                     self.lsh.index( h )
-                    self.pop_hash[binary_hash] = [ind_subtree]
+                    if binary_hash not in self.pop_hash:
+                        self.pop_hash[binary_hash] = [ind_subtree]
+                    else:
+                        self.pop_hash[binary_hash].append(ind_subtree)
 
             # Wrapping the list into the individual again
             new_ind = self.Individual(ind)
