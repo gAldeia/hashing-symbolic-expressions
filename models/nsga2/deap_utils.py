@@ -74,6 +74,7 @@ node_functions = { # ( name (str), (function, arity) )
 
     'sqrtabs' : (sqrtabs, 1),
     'log1p'   : (np.log1p, 1),
+    'log'     : (np.log, 1),
     'exp'     : (np.exp, 1),
     'square'  : (np.square, 1),
     'abs'     : (np.abs, 1),
@@ -94,6 +95,7 @@ operator_complexities = {
     'sqrtabs': 4,
     'exp'    : 4,
     'log1p'  : 8,
+    'log'    : 8,
     'square' : 3,
     'abs'    : 3,
 

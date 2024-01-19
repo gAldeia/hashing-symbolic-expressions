@@ -33,7 +33,7 @@ class NSGAIIEstimator(BaseEstimator):
         validation_size: float = 0.0, 
         simplify=True,
         simplification_method="bottom_up",
-        simplification_tolerance=1e-16,
+        simplification_tolerance=1e-15,
         simplify_only_last=False,
         verbosity=0,
         mode='regression',
@@ -92,7 +92,7 @@ class NSGAIIEstimator(BaseEstimator):
                     'add3', 'add4', 'mul3', 'mul4',
                     'maximum', 'minimum',
                     'sin', 'cos', 'tan',
-                    'sqrtabs', 'log1p', 'exp', 'square', 'abs'
+                    'sqrtabs', 'log1p', 'log', 'exp', 'square', 'abs'
             ]
 
         for f in self.functions:
@@ -181,6 +181,9 @@ class NSGAIIEstimator(BaseEstimator):
         else:
             raise Exception("Unknown simplification method")
         
+        # Just to access it later and get isomorphs
+        self.simplifier = simplifier
+
         return toolbox
 
 

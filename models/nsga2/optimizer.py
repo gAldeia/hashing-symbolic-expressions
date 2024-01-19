@@ -18,6 +18,9 @@ def optimize_individual(toolbox, ind, X, y):
                 # Creating new instance to avoid collateral effects
                 ind[i] = type(node)()
     
+    if len(coefs) == 0: # nothing to do here
+        return ind
+    
     # Function to update the coeffs following order they occur, then return prediction
     def model(params, xs):
         if np.sum(np.isfinite(params)) < len(params):
