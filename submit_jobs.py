@@ -21,8 +21,8 @@ if __name__ == '__main__':
                             'd_enc,'
                             'd_enh,'
                             'd_housing,'
-                            'd_tower,'
-                            'd_uball5d,'
+                            # 'd_tower,'
+                            # 'd_uball5d,'
                             'd_yacht'
                             ))
     parser.add_argument('-repeats',action='store',dest='REPEATS', type=int,              
