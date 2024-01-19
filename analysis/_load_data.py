@@ -34,9 +34,9 @@ datasets = [
     'd_enc',
     'd_enh',
     'd_housing',
-    #'d_tower',
-    #'d_uball5d',
-    #'d_yacht'
+    'd_tower',
+    'd_uball5d',
+    'd_yacht'
 ]
 datasets_nice = [
     'Airfoil',
@@ -44,14 +44,14 @@ datasets_nice = [
     "Energy Cooling",
     'Energy Heating',
     "Housing",
-    #"Tower",
-    #"UBall 5d",
-    #"Yacht"
+    "Tower",
+    "UBall 5d",
+    "Yacht"
 ]
 dnames_to_nice = {k:v for k,v in zip(datasets, datasets_nice)}
 dnames_to_ugly = {v:k for k,v in dnames_to_nice.items()}
 
-col_wrap = 2
+col_wrap = 4
 
 objectives = ['error', 'size']
 
@@ -84,9 +84,16 @@ print(model_filenames, model_nice)
 
 markers = ('^','o', 's', 'p', 'P', 'h', 'D', 'P', 'X', 'v', '<', '>','*')
 
-# order = sorted(model_nice)
+order = sorted(model_nice)
 order = ['Without simplify', 'Top Down', 'Bottom Up',
          'Top Down (only last)', 'Bottom Up (only last)']
+# order = ['Top Down 1e-0', 'Top Down 1e-1' 
+#          'Top Down 1e-2' 'Top Down 1e-4' 
+#          'Top Down 1e-6', 'Top Down 1e-10', 'Top Down']
+order = [
+    'Without simplify', 'Bottom Up', 'Top Down', 
+    # 'Top Down (only last)', 'Bottom Up (only last)'
+]
 
 marker_choice = { model: marker for (model, marker) in zip(model_nice, markers) }
 
@@ -114,6 +121,9 @@ results_df = pd.DataFrame(data=results, columns=indxs)
 
 # Beautifying it
 results_df['dataset'] = results_df['dataset'].apply(lambda t: dnames_to_nice[t])
+
+# filtering just models we specified in order
+results_df = results_df[results_df.model.isin(order)]
 
 print(results_df.shape)
 print(results_df['model'].unique())
