@@ -1,10 +1,10 @@
 kwargs = {
-    'pop_size'       : 100, 
+    'pop_size'       : 150, 
     'max_gen'        : 255,
-    'max_depth'      : 6,
+    'max_depth'      : 10,
     'max_size'       : 2**6,
     'objectives'     : ['error', 'size'],
-    'cx_prob'        : 1/(4+1), # n_mutations+1
+    'cx_prob'        : 0.5, #1/(4+1), # n_mutations+1
     'initialization' : 'uniform',
     'pick_criteria'  : 'error',
     'validation_size': 0.3,

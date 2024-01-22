@@ -11,7 +11,7 @@ from .deap_utils import get_complexity
 
 class HashSimplifier:
     def __init__(self, Individual, Fitness, toolbox,
-                 hash_len=32, tolerance=1e-20):
+                 hash_len=16, tolerance=1e-20):
         self.Individual = Individual
         self.Fitness = Fitness
         self.toolbox = toolbox
@@ -102,7 +102,7 @@ class HashSimplifier:
                     # print(f'     - skipping')
                     continue
 
-                ind_subtree = self.Individual(ind_subtree)
+                ind_subtree = self.Individual(self.toolbox.clone(ind_subtree)[:])
                 # print(f'     - cast into ind {ind_subtree}')
 
                 # Semantics to be hashed
@@ -187,11 +187,6 @@ class HashSimplifier:
 
             assert original_str == str(pop[idx])
 
-            # Wrapping the list into the individual again
-            ##ind.fitness = self.Fitness()
-            # ind.fitness.values = pop[idx].fitness.values
-            # print(f'  - final result {new_ind}')
-
             new_pop.append(ind)
             if refit_ind:
                 refit.append(idx)
@@ -226,7 +221,7 @@ class HashSimplifier:
                 if len(ind_subtree) <=1:
                     continue
 
-                ind_subtree = self.Individual(ind_subtree)
+                ind_subtree = self.Individual(self.toolbox.clone(ind_subtree)[:])
 
                 # Semantics to be hashed
                 h = self._predict_hash(ind_subtree, X, y)
