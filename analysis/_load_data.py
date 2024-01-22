@@ -92,10 +92,10 @@ order = ['Without simplify', 'Top Down', 'Bottom Up',
 #          'Top Down 1e-6', 'Top Down 1e-10', 'Top Down']
 order = [
     'Without simplify', 'Bottom Up', 'Top Down', 
-    'Top Down (only last)', 'Bottom Up (only last)'
+    'Top Down (only last)', 'Bottom Up (only last)',
+    # 'Top Down 1e-0', 'Top Down 1e-1',
+    # 'Top Down 1e-2', 'Top Down 1e-4',
 ]
-
-marker_choice = { model: marker for (model, marker) in zip(model_nice, markers) }
 
 # how we sample the generations
 # gens = range(tot_gens)                         # all generations (slower)
@@ -124,6 +124,9 @@ results_df['dataset'] = results_df['dataset'].apply(lambda t: dnames_to_nice[t])
 
 # filtering just models we specified in order
 results_df = results_df[results_df.model.isin(order)]
+
+marker_choice = { model: marker
+                 for (model, marker) in zip(results_df['model'].unique(), markers) }
 
 print(results_df.shape)
 print(results_df['model'].unique())
