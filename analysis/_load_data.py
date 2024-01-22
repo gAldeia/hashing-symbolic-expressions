@@ -21,8 +21,8 @@ sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.0})
 
 results_path = "../results"
 
-step_size = 10 # How many generations to ignore between two points in the plots
-skip_gens = 10 # How many initial generations to skip 
+step_size = 20 # How many generations to ignore between two points in the plots
+skip_gens = 5 # How many initial generations to skip 
 tot_gens  = models_kwargs['max_gen']
 
 if not os.path.exists('../paper/figs'):
@@ -51,7 +51,7 @@ datasets_nice = [
 dnames_to_nice = {k:v for k,v in zip(datasets, datasets_nice)}
 dnames_to_ugly = {v:k for k,v in dnames_to_nice.items()}
 
-col_wrap = 4
+col_wrap = 3
 
 objectives = ['error', 'size']
 
@@ -92,7 +92,7 @@ order = ['Without simplify', 'Top Down', 'Bottom Up',
 #          'Top Down 1e-6', 'Top Down 1e-10', 'Top Down']
 order = [
     'Without simplify', 'Bottom Up', 'Top Down', 
-    # 'Top Down (only last)', 'Bottom Up (only last)'
+    'Top Down (only last)', 'Bottom Up (only last)'
 ]
 
 marker_choice = { model: marker for (model, marker) in zip(model_nice, markers) }
