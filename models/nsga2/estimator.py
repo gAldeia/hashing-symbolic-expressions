@@ -33,6 +33,7 @@ class NSGAIIEstimator(BaseEstimator):
         validation_size: float = 0.0, 
         simplify=True,
         simplification_method="bottom_up",
+        survival='offspring',
         simplification_tolerance=1e-15,
         simplify_only_last=False,
         verbosity=0,
@@ -54,6 +55,7 @@ class NSGAIIEstimator(BaseEstimator):
         self.simplification_method=simplification_method
         self.simplification_tolerance=simplification_tolerance
         self.simplify_only_last=simplify_only_last
+        self.survival=survival
         self.objectives = objectives
         self.random_state=random_state
         self.mode=mode
@@ -91,8 +93,8 @@ class NSGAIIEstimator(BaseEstimator):
                     'div', 'add', 'sub', 'mul',
                     'add3', 'add4', 'mul3', 'mul4',
                     'maximum', 'minimum',
-                    'sin', 'cos', 'tan',
-                    'sqrtabs', 'log1p', 'log', 'exp', 'square', 'abs'
+                    'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan', 
+                    'sqrtabs', 'log1p', 'expm1', 'log', 'exp', 'square', 'abs'
             ]
 
         for f in self.functions:
@@ -163,8 +165,16 @@ class NSGAIIEstimator(BaseEstimator):
 
         # Selection and survival steps 
         toolbox.register("get_objectives", lambda: ['error', 'size'])
-        toolbox.register("select", tools.selTournamentDCD)
-        toolbox.register("survive", tools.selNSGA2)
+
+        if self.survival == 'nsga2':
+            toolbox.register("select", tools.selTournamentDCD)
+            toolbox.register("survive", tools.selNSGA2)
+        elif self.survival == 'offspring':
+            toolbox.register("select", tools.selTournament, tournsize=3) 
+            def offspring(pop, MU): return pop[-MU:] # not perfect in case all variation attempts failed
+            toolbox.register("survive", offspring)
+        else:
+            raise Exception('Unknown selection method')
 
         # Optimize individual
         simplifier = HashSimplifier(creator.Individual, creator.FitnessMulti, toolbox,

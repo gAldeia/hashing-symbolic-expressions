@@ -71,12 +71,17 @@ node_functions = { # ( name (str), (function, arity) )
     'sin' : (np.sin, 1),
     'cos' : (np.cos, 1),
     'tan' : (np.tan, 1),
+    'arcsin' : (np.arcsin, 1),
+    'arccos' : (np.arccos, 1),
+    'arctan' : (np.arctan, 1),
+
 
     'sqrtabs' : (sqrtabs, 1),
-    'log1p'   : (np.log1p, 1),
+    'square'  : (np.square, 1),
     'log'     : (np.log, 1),
     'exp'     : (np.exp, 1),
-    'square'  : (np.square, 1),
+    'expm1'   : (np.expm1, 1),
+    'log1p'   : (np.log1p, 1),
     'abs'     : (np.abs, 1),
 }
 
@@ -91,11 +96,15 @@ operator_complexities = {
     'cos': 5,
     'sin': 5,
     'tan': 5,
+    'arccos': 6,
+    'arcsin': 6,
+    'arctan': 6,
 
     'sqrtabs': 4,
     'exp'    : 4,
-    'log1p'  : 8,
     'log'    : 8,
+    'expm1'  : 5,
+    'log1p'  : 9,
     'square' : 3,
     'abs'    : 3,
 
