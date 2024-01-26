@@ -75,23 +75,34 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random,
 
     # Begin the generational process
     for gen in range(1, NGEN):
+        
+        # print(f'--------- gen {gen} pop -----------')
+        # for ind in pop:
+        #     print(ind.fitness, ind)
+
         parents = toolbox.select(pop, len(pop))
+
+        # print(f'--------- gen {gen} parents -----------')
+        # for ind in parents:
+        #     print(ind.fitness, ind)
 
         offspring = []
         for ind1, ind2 in zip(parents[::2], parents[1::2]):
-            ind1 = toolbox.clone(ind1)
-            ind2 = toolbox.clone(ind2)
-
-            off1, off2 = None, None
+            off1 = toolbox.clone(ind1)
+            off2 = toolbox.clone(ind2)
             if random.random() < CXPB:
-                off1, off2 = toolbox.mate(ind1, ind2)
+                off1, off2 = toolbox.mate(off1, off2)
             else:
                 # mutate returns a list with 1 individual
-                off1, = toolbox.mutate(ind1)
-                off2, = toolbox.mutate(ind2)
+                off1, = toolbox.mutate(off1)
+                off2, = toolbox.mutate(off2)
 
             offspring.extend([off1])
             offspring.extend([off2])
+
+        # print(f'--------- gen {gen} offspring (pre fit) -----------')
+        # for ind in offspring:
+        #     print(ind.fitness, ind)
 
         fitnesses = toolbox.map(toolbox.evaluate, offspring)
         for ind, fit in zip(offspring, fitnesses):
@@ -102,7 +113,7 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random,
             gen_update = (gen==NGEN-1) if simplify_only_last else True
 
             # print(f'--------- gen {gen} -----------')
-            # for ind in offspring:
+            # for ind in pop:
             #     print(ind.fitness, ind)
 
             offspring, refit = toolbox.simplify_pop(offspring, X, y, replace_pop=gen_update)
@@ -111,14 +122,23 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random,
             n_new_hashes      = toolbox.get_n_new_hashes()
 
             for idx in refit:
+                assert offspring[idx].fitness.weights == pop[0].fitness.weights
                 offspring[idx].fitness.values = toolbox.evaluate(offspring[idx])
 
             # print(f'--------- gen {gen} -----------')
-            # for ind in offspring:
+            # for ind in pop:
             #     print(ind.fitness, ind)
-                
+
+        # print(f'--------- gen {gen} offspring -----------')
+        # for ind in offspring:
+        #     print(ind.fitness, ind)
+            
         # Select the next generation population
         pop = toolbox.survive(pop + offspring, MU)
+
+        # print(f'--------- gen {gen} survivors -----------')
+        # for ind in pop:
+        #     print(ind.fitness, ind)
 
         best_size = max( range(len(pop)),
             key=lambda index: ( pop[index].fitness.values[0]*pop[index].fitness.weights[0],

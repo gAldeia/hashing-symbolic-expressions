@@ -29,7 +29,12 @@ class HashSimplifier:
         expr = self.toolbox.compile(expr=ind)
         pred = np.array([expr(*x) for x in X])
 
-        return pred - np.mean(pred)
+        # constant predictions, should be mapped into dummy_ind hash
+        if np.std(pred) <= 1e-8:
+           # print('CONST SEMANTIC')
+           return np.ones_like(pred)
+        
+        return pred # np.std(pred) * ( pred + np.mean(pred) )
     
 
     def initialize(self, pset, X, y):
@@ -59,7 +64,7 @@ class HashSimplifier:
             self.pop_hash[binary_hash] = [feature_ind]
 
         dummy_ind = self.Individual([pset.mapping['rand100']()])
-        dummy_ind[0].value = np.mean(y) # setting the value to be mean prediction
+        dummy_ind[0].value = 0.0 # setting the value to be zero, same as constant nodes would have
 
         h = self._predict_hash(dummy_ind, X, y)
 
@@ -129,6 +134,9 @@ class HashSimplifier:
                     # print(f'     - hash {binary_hash}')
                     # print(f'       - closest hash {closest_hash} with dist {d} and semantics {v[:3]}')
                     # print(f'       - ind is {self.pop_hash[closest_hash][0]}')
+                    for indf in  self.pop_hash[closest_hash][1:]:
+                        # print(f'       - (next ) {indf}')
+                        pass
                 except IndexError:
                     # print(f'       - indexing it (failed to find any hash)')
 
@@ -166,10 +174,15 @@ class HashSimplifier:
                     else:
                         # print(f'         - CANNOT be simplified cause len {self.key(self.pop_hash[closest_hash][0])} of {self.pop_hash[closest_hash][0]} >= len {self.key(ind_subtree)} of {ind_subtree}')
                         pass
-                    
-                    bisect.insort(
-                        self.pop_hash[closest_hash], ind_subtree,
-                        key=lambda ind: self.key(ind))
+
+                    # avoid repeated hashes (this is good for statistics)
+                    if len([i for i in self.pop_hash[closest_hash]
+                            if str(i) == str(ind_subtree)]) == 0:
+                        
+                        self.n_new_hashes += 1
+                        bisect.insort(
+                            self.pop_hash[closest_hash], ind_subtree,
+                            key=lambda ind: self.key(ind))
                     
                 else: # Making it a new semantics item
                     # print(f'         - not simplifiable, will insert it')
@@ -258,10 +271,15 @@ class HashSimplifier:
 
                         indexes = range(idx_node+1, len(ind)) #[1:]
 
-                    bisect.insort(
-                        self.pop_hash[closest_hash], ind_subtree,
-                        key=lambda ind: self.key(ind))
-                    
+                    # avoid repeated hashes (this is good for statistics)
+                    if len([i for i in self.pop_hash[closest_hash]
+                            if str(i) == str(ind_subtree)]) == 0:
+                        
+                        self.n_new_hashes += 1
+                        bisect.insort(
+                            self.pop_hash[closest_hash], ind_subtree,
+                            key=lambda ind: self.key(ind))
+                        
                 else: # Making it a new semantics item
                     if binary_hash not in self.pop_hash:
                         self.pop_hash[binary_hash] = [ind_subtree]

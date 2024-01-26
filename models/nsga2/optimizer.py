@@ -45,9 +45,10 @@ def optimize_individual(toolbox, ind, X, y):
     optimized_params = params_initial
 
     try:
-        result = least_squares(residuals, params_initial, args=(X, y), max_nfev=10)
+        result = least_squares(residuals, params_initial, args=(X, y), max_nfev=5)
         optimized_params = result.x
     except ValueError: # Optimization failed --- theres inf in the data
+        # print(f"optimization of {ind} failed")
         pass
     except Exception as e:
         print(ind)

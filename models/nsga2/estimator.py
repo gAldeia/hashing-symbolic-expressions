@@ -32,6 +32,7 @@ class NSGAIIEstimator(BaseEstimator):
         pick_criteria = 'MCDM', 
         validation_size: float = 0.0, 
         simplify=True,
+        selection='e_lexicase',
         simplification_method="bottom_up",
         survival='offspring',
         simplification_tolerance=1e-15,
@@ -52,6 +53,7 @@ class NSGAIIEstimator(BaseEstimator):
         self.pick_criteria=pick_criteria
         self.validation_size=validation_size
         self.simplify = simplify
+        self.selection=selection
         self.simplification_method=simplification_method
         self.simplification_tolerance=simplification_tolerance
         self.simplify_only_last=simplify_only_last
@@ -167,12 +169,16 @@ class NSGAIIEstimator(BaseEstimator):
         toolbox.register("get_objectives", lambda: ['error', 'size'])
 
         if self.survival == 'nsga2':
+            #toolbox.register("select", tools.selAutomaticEpsilonLexicase)
             toolbox.register("select", tools.selTournamentDCD)
             toolbox.register("survive", tools.selNSGA2)
-        elif self.survival == 'offspring':
+        elif self.survival in ['offspring', 'tournament']:
             toolbox.register("select", tools.selTournament, tournsize=3) 
-            def offspring(pop, MU): return pop[-MU:] # not perfect in case all variation attempts failed
-            toolbox.register("survive", offspring)
+            if self.survival == 'offspring':
+                def offspring(pop, MU): return pop[-MU:] # not perfect in case all variation attempts failed
+                toolbox.register("survive", offspring)
+            elif self.survival == 'tournament':
+                toolbox.register("survive", tools.selTournament, tournsize=3) 
         else:
             raise Exception('Unknown selection method')
 
