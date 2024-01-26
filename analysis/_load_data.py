@@ -19,10 +19,10 @@ pd.set_option('display.max_colwidth', None)
 sns.set(style="ticks", palette='colorblind')
 sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.0})
 
-results_path = "../results"
+results_path = "../results" #  "../_results (simplify at beggining of gen)" # 
 
-step_size = 20 # How many generations to ignore between two points in the plots
-skip_gens = 5 # How many initial generations to skip 
+step_size = 10 # How many generations to ignore between two points in the plots
+skip_gens = 10 # How many initial generations to skip 
 tot_gens  = models_kwargs['max_gen']
 
 if not os.path.exists('../paper/figs'):
@@ -87,15 +87,18 @@ markers = ('^','o', 's', 'p', 'P', 'h', 'D', 'P', 'X', 'v', '<', '>','*')
 order = sorted(model_nice)
 order = ['Without simplify', 'Top Down', 'Bottom Up',
          'Top Down (only last)', 'Bottom Up (only last)']
-# order = ['Top Down 1e-0', 'Top Down 1e-1' 
-#          'Top Down 1e-2' 'Top Down 1e-4' 
-#          'Top Down 1e-6', 'Top Down 1e-10', 'Top Down']
 order = [
     'Without simplify', 'Bottom Up', 'Top Down', 
-    'Top Down (only last)', 'Bottom Up (only last)',
+    # 'Top Down (only last)', 'Bottom Up (only last)',
     # 'Top Down 1e-0', 'Top Down 1e-1',
     # 'Top Down 1e-2', 'Top Down 1e-4',
 ]
+# order = [
+#     'Top Down', 'Top Down (only last)',
+#     'Top Down 1e-0', 'Top Down 1e-1',
+#     'Top Down 1e-2', 'Top Down 1e-4',
+#     'Top Down 1e-6', 'Top Down 1e-10',
+# ]
 
 # how we sample the generations
 # gens = range(tot_gens)                         # all generations (slower)
