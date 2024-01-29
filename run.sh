@@ -3,7 +3,7 @@
 models=()
 
 models+=("Vanilla,SimplifierBottomUp,SimplifierTopDown")
-models+=("SimplifierBottomUpOnlyLast,SimplifierTopDownOnlyLast")
+# models+=("SimplifierBottomUpOnlyLast,SimplifierTopDownOnlyLast")
 
 # models+=("Vanilla")
 
@@ -24,5 +24,5 @@ models+=("SimplifierBottomUpOnlyLast,SimplifierTopDownOnlyLast")
 for model in "${models[@]}"
 do
     # -repeats: runs per seed. -n_trials: number of different seeds
-    python submit_jobs.py -repeats 1 -n_trials 10 -models "$model" -n_jobs 60 -data-dir ./data/lexicase_paper --local # --slurm -time 1:45:00 -m 1000 # 
+    python submit_jobs.py -repeats 1 -n_trials 20 -models "$model" -n_jobs 30 -data-dir ./data/lexicase_paper --local # --slurm -time 1:45:00 -m 1000 # 
 done
