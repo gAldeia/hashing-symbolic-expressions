@@ -4,14 +4,14 @@
 # https://github.com/loretoparisi/lshash
 import lshashpy3 as lshash
 import bisect
-
+import warnings
 import numpy as np
 
 from .deap_utils import get_complexity
 
 class HashSimplifier:
     def __init__(self, Individual, Fitness, toolbox,
-                 hash_len=16, tolerance=1e-20):
+                 hash_len=256, tolerance=1e-20):
         self.Individual = Individual
         self.Fitness = Fitness
         self.toolbox = toolbox
@@ -30,7 +30,7 @@ class HashSimplifier:
         pred = np.array([expr(*x) for x in X])
 
         # constant predictions, should be mapped into dummy_ind hash
-        if np.std(pred) <= 1e-8:
+        if np.std(pred) <= 1e-10:
            # print('CONST SEMANTIC')
            return np.ones_like(pred)
         
@@ -79,7 +79,15 @@ class HashSimplifier:
         self.n_simplifications = 0
         self.n_new_hashes      = 0
 
-        assert 0 < len(self.pop_hash.keys()) <= X.shape[1]+1
+        if len(self.pop_hash.keys()) != X.shape[1]+1:
+            # There is the case where we have one constant feature
+            # (few samples, bad train/test split, bad data...)
+            message  = ("It was not possible to create one hash for each terminal " 
+                        "(which means that there is a hash colision). Try to "
+                        "increase hash size.")
+
+            warnings.warn(message)
+            #raise Exception(message)
 
         self.initialized = True
 
@@ -192,7 +200,7 @@ class HashSimplifier:
                         self.n_new_hashes += 1
                         self.lsh.index( h )
                     else:
-                        # print(f'           - similar hash, inserting in the family of {self.pop_hash[binary_hash][0]}')
+                        # print(f'           - similar hash, family of {self.pop_hash[binary_hash][0]}. skipping')
                         # bisect.insort(
                         #     self.pop_hash[binary_hash], ind_subtree,
                         #     key=lambda ind: len(ind))

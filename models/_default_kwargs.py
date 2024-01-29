@@ -1,6 +1,6 @@
 kwargs = {
     'pop_size'       : 80, 
-    'max_gen'        : 301,
+    'max_gen'        : 201,
     'max_depth'      : 6,
     'max_size'       : 2**6,
     'objectives'     : ['error', 'size'],
@@ -10,12 +10,12 @@ kwargs = {
     'validation_size': 0.33,
     'verbosity'      : 0,
     'survival'       : 'tournament', #'nsga2', 'offspring'
-    'simplification_tolerance' : 1e-10,
+    'simplification_tolerance' : 1e-8,
     'functions'      : [
                         'div', 'add', 'sub', 'mul',
-                        #'add3', 'add4', 'mul3', 'mul4',
+                        # 'add3', 'add4', 'mul3', 'mul4',
                         'maximum', 'minimum',
-                        'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan', 
+                        'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan', 'sqrt', 
                         'sqrtabs', 'log1p', 'expm1', 'log', 'exp', 'square', 'abs'
                        ],
 }

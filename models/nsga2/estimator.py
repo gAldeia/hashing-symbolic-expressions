@@ -95,7 +95,7 @@ class NSGAIIEstimator(BaseEstimator):
                     'div', 'add', 'sub', 'mul',
                     'add3', 'add4', 'mul3', 'mul4',
                     'maximum', 'minimum',
-                    'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan', 
+                    'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan', 'sqrt',
                     'sqrtabs', 'log1p', 'expm1', 'log', 'exp', 'square', 'abs'
             ]
 

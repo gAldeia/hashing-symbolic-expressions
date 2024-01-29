@@ -77,6 +77,7 @@ node_functions = { # ( name (str), (function, arity) )
 
 
     'sqrtabs' : (sqrtabs, 1),
+    'sqrt'    : (np.sqrt, 1),
     'square'  : (np.square, 1),
     'log'     : (np.log, 1),
     'exp'     : (np.exp, 1),
