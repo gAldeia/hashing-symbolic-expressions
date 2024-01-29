@@ -17,7 +17,7 @@ from models._default_kwargs import kwargs as models_kwargs
 
 pd.set_option('display.max_colwidth', None)
 sns.set(style="ticks", palette='colorblind')
-sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.0})
+sns.set_context("paper", font_scale=1.75, rc={"lines.linewidth": 1.5})
 
 results_path = "../results" #  "../_results (simplify at beggining of gen)" # 
 
@@ -51,7 +51,7 @@ datasets_nice = [
 dnames_to_nice = {k:v for k,v in zip(datasets, datasets_nice)}
 dnames_to_ugly = {v:k for k,v in dnames_to_nice.items()}
 
-col_wrap = 3
+col_wrap = 2
 
 objectives = ['error', 'size']
 
@@ -88,10 +88,11 @@ order = sorted(model_nice)
 order = ['Without simplify', 'Top Down', 'Bottom Up',
          'Top Down (only last)', 'Bottom Up (only last)']
 order = [
-    'Without simplify', 'Bottom Up', 'Top Down', 
-    # 'Top Down (only last)', 'Bottom Up (only last)',
+    'Bottom Up', 'Top Down', 
+    # 'Bottom Up (only last)', 'Top Down (only last)', 
     # 'Top Down 1e-0', 'Top Down 1e-1',
     # 'Top Down 1e-2', 'Top Down 1e-4',
+    'Without simplify', 
 ]
 # order = [
 #     'Top Down', 'Top Down (only last)',
@@ -143,7 +144,7 @@ boxplot_kwargs = { # Standarized boxplot style
     'notch'       : True,
     'orient'      : "v",
     'estimator'   : np.median, 
-    'boxprops'    : {"facecolor": 'white'},
+    #'boxprops'    : {"facecolor": 'white'},
     'medianprops' : {"color": "k", "linewidth": 3},
-    'showcaps'    : False,
+    'showcaps'    : True,
 }
