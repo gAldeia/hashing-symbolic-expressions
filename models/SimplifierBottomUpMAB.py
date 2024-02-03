@@ -4,9 +4,9 @@ from ._default_kwargs import kwargs
 reg = NSGAIIRegressor(
     **{**kwargs,
        **{'simplify'              : True,
-          'simplification_method' : 'top_down',
-          'simplification_tolerance' : 1e-2   }
+          'simplification_method' : 'bottom_up',
+           'use_mab'              : True }
     }
 ) 
 
-name = "Top Down 1e-2"
+name = "Bottom Up MAB"
