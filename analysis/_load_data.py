@@ -88,7 +88,7 @@ order = sorted(model_nice)
 order = ['Without simplify', 'Top Down', 'Bottom Up',
          'Top Down (only last)', 'Bottom Up (only last)']
 order = [
-    'Bottom Up', 'Top Down', 
+    'Bottom Up', 'Bottom Up MAB', #'Top Down', 
     # 'Bottom Up (only last)', 'Top Down (only last)', 
     # 'Top Down 1e-0', 'Top Down 1e-1',
     # 'Top Down 1e-2', 'Top Down 1e-4',
