@@ -24,5 +24,5 @@ models+=("Vanilla,SimplifierBottomUp,SimplifierTopDown")
 for model in "${models[@]}"
 do
     # -repeats: runs per seed. -n_trials: number of different seeds
-    python submit_jobs.py -repeats 1 -n_trials 20 -models "$model" -n_jobs 30 -data-dir ./data/lexicase_paper --local # --slurm -time 1:45:00 -m 1000 # 
+    python submit_jobs.py -repeats 1 -n_trials 30 -models "$model" -n_jobs 1 -data-dir ./data/lexicase_paper --slurm -time 6:00:00 -m 3000 # --local # 
 done
