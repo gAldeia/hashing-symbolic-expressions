@@ -9,6 +9,7 @@ import numpy as np
 
 from .deap_utils import get_complexity
 
+
 class HashSimplifier:
     def __init__(self, Individual, Fitness, toolbox,
                  hash_len=256, tolerance=1e-20):
@@ -89,7 +90,12 @@ class HashSimplifier:
             warnings.warn(message)
             #raise Exception(message)
 
+        self.toolbox.register("get_n_simplifications", lambda: self.n_simplifications)
+        self.toolbox.register("get_n_new_hashes", lambda: self.n_new_hashes)
+
         self.initialized = True
+        
+        return self
 
 
     def simplify_pop_bottom_up(self, pop, X, y, replace_pop=True):

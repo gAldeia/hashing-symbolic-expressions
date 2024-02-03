@@ -6,12 +6,9 @@ from deap.benchmarks.tools import hypervolume
 import numpy as np
 
 
-def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random, 
+def nsga2_deap(toolbox, NGEN, MU, verbosity,
                simplify, simplify_only_last, X, y):
 
-    # NGEN = 250
-    # MU = 100
-    # CXPB = 0.9
 
     def calculate_statistics(ind):
         on_train = ind.fitness.values
@@ -86,27 +83,16 @@ def nsga2_deap(toolbox, NGEN, MU, CXPB, verbosity, random,
         # for ind in parents:
         #     print(ind.fitness, ind)
 
-        offspring = []
-        for ind1, ind2 in zip(parents[::2], parents[1::2]):
-            off1 = toolbox.clone(ind1)
-            off2 = toolbox.clone(ind2)
-            if random.random() < CXPB:
-                off1, off2 = toolbox.mate(off1, off2)
-            else:
-                # mutate returns a list with 1 individual
-                off1, = toolbox.mutate(off1)
-                off2, = toolbox.mutate(off2)
-
-            offspring.extend([off1])
-            offspring.extend([off2])
+        offspring = toolbox.vary_pop(parents, gen, X, y)
 
         # print(f'--------- gen {gen} offspring (pre fit) -----------')
         # for ind in offspring:
         #     print(ind.fitness, ind)
 
-        fitnesses = toolbox.map(toolbox.evaluate, offspring)
-        for ind, fit in zip(offspring, fitnesses):
-            ind.fitness.values = fit
+        # Our Variator already handles refitting after varying
+        # # # fitnesses = toolbox.map(toolbox.evaluate, offspring)
+        # # # for ind, fit in zip(offspring, fitnesses):
+        # # #     ind.fitness.values = fit
 
         # simplifying offspring (alleaviate bloat by replacing based on hash)
         if simplify:

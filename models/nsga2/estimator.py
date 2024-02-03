@@ -1,6 +1,7 @@
 # Baseline estimator
 # Created by Guilherme Aldeia 01/08/2024 guilherme.aldeia@ufabc.edu.br
-
+# OBS: you may need to add `from inspect import isclass` in deap gp.py source code...
+        
 import operator
 import warnings
 
@@ -10,6 +11,7 @@ from .deap_utils import PTC2_deap, node_functions, ERC100, get_complexity
 from .nsga2_deap import nsga2_deap
 from .optimizer import optimize_individual
 from .hash_simplifier import HashSimplifier
+from .variation import Variator
 
 from deap import base, creator, tools,gp
 
@@ -35,6 +37,8 @@ class NSGAIIEstimator(BaseEstimator):
         selection='e_lexicase',
         simplification_method="bottom_up",
         survival='offspring',
+        use_mab=False,
+        use_context=False,
         simplification_tolerance=1e-15,
         simplify_only_last=False,
         verbosity=0,
@@ -47,13 +51,14 @@ class NSGAIIEstimator(BaseEstimator):
         self.verbosity=verbosity
         self.max_depth=max_depth
         self.max_size=max_size
-        self.cx_prob=cx_prob
         self.functions=functions
         self.initialization=initialization
         self.pick_criteria=pick_criteria
         self.validation_size=validation_size
         self.simplify = simplify
         self.selection=selection
+        self.use_context=use_context
+        self.use_mab=use_mab
         self.simplification_method=simplification_method
         self.simplification_tolerance=simplification_tolerance
         self.simplify_only_last=simplify_only_last
@@ -89,14 +94,13 @@ class NSGAIIEstimator(BaseEstimator):
     def _setup_toolbox(self, X_train, y_train, X_val, y_val):
         pset = gp.PrimitiveSet("MAIN", arity=X_train.shape[1]) 
 
-        # TODO: have  a dict  and iterate through it to add the primitives to the  set
         if self.functions == []:
             self.functions = [
-                    'div', 'add', 'sub', 'mul',
-                    'add3', 'add4', 'mul3', 'mul4',
-                    'maximum', 'minimum',
-                    'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan', 'sqrt',
-                    'sqrtabs', 'log1p', 'expm1', 'log', 'exp', 'square', 'abs'
+                'div', 'add', 'sub', 'mul',
+                'add3', 'add4', 'mul3', 'mul4',
+                'maximum', 'minimum',
+                'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan', 'sqrt',
+                'sqrtabs', 'log1p', 'expm1', 'log', 'exp', 'square', 'abs'
             ]
 
         for f in self.functions:
@@ -113,8 +117,6 @@ class NSGAIIEstimator(BaseEstimator):
 
         # DEAP Toolbox
         toolbox = base.Toolbox()
-
-        #  TODO: instead of using creator to create those classes, implement them!
 
         # Cleaning possible previous classes that are model-dependent
         if hasattr(creator, "FitnessMulti"):
@@ -139,32 +141,6 @@ class NSGAIIEstimator(BaseEstimator):
         toolbox.register("evaluate", self._fitness_function, X=X_train, y=y_train)
         toolbox.register("evaluateValidation", self._fitness_validation, X=X_val, y=y_val)
 
-        # Variation operators: mutations (4 types, and a main function)
-        toolbox.register("mutate_point", gp.mutNodeReplacement, pset=pset)
-        toolbox.register("mutate_delete", gp.mutShrink)
-        toolbox.register("mutate_subtree", gp.mutUniform, pset=pset, expr=toolbox.expr)
-        toolbox.register("mutate_insert", gp.mutInsert, pset=pset)
-
-        mutations = { "point"   : toolbox.mutate_point,
-                      "delete"  : toolbox.mutate_delete,
-                      "subtree" : toolbox.mutate_subtree,
-                      "insert"  : toolbox.mutate_insert   }
-        def mutation(ind):
-            mutation_to_apply = self.random.choice(["point","delete","subtree","insert"])
-            new_ind = mutations[mutation_to_apply](ind)
-            return new_ind
-        
-        # OBS: you may need to add `from inspect import isclass` in deap gp.py source code...
-        
-        toolbox.register("mutate", mutation)
-        toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=self.max_depth))	
-        toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=self.max_size))
-        
-        # Variation operators: crossover
-        toolbox.register("mate", gp.cxOnePoint)
-        toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=self.max_depth))
-        toolbox.decorate("mate", gp.staticLimit(key=len, max_value=self.max_size))
-
         # Selection and survival steps 
         toolbox.register("get_objectives", lambda: ['error', 'size'])
 
@@ -182,13 +158,21 @@ class NSGAIIEstimator(BaseEstimator):
         else:
             raise Exception('Unknown selection method')
 
-        # Optimize individual
-        simplifier = HashSimplifier(creator.Individual, creator.FitnessMulti, toolbox,
-                                    tolerance=self.simplification_tolerance)
-        simplifier.initialize(pset, X_train, y_train)
+        # variation operators
+        variator = Variator(
+            creator.Individual, creator.FitnessMulti, toolbox,
+            max_depth=self.max_depth, max_size=self.max_size,
+            rnd_generator=self.random, use_context=self.use_context, 
+            use_mab=self.use_mab).initialize(pset, X_train, y_train)
+        
+        # Just to access it later 
+        self.variator = variator
 
-        toolbox.register("get_n_simplifications", lambda: simplifier.n_simplifications)
-        toolbox.register("get_n_new_hashes", lambda: simplifier.n_new_hashes)
+        # Optimize individual
+        simplifier = HashSimplifier(
+                        creator.Individual, creator.FitnessMulti, toolbox,
+                        tolerance=self.simplification_tolerance
+                    ).initialize(pset, X_train, y_train)
 
         if self.simplification_method=="bottom_up":
             toolbox.register("simplify_pop", simplifier.simplify_pop_bottom_up)
@@ -226,8 +210,8 @@ class NSGAIIEstimator(BaseEstimator):
             warnings.simplefilter('ignore', category=RuntimeWarning)
 
             archive, logbook = nsga2_deap(
-                self.toolbox_, self.max_gen, self.pop_size, self.cx_prob,
-                self.verbosity, self.random, self.simplify, 
+                self.toolbox_, self.max_gen, self.pop_size,
+                self.verbosity, self.simplify, 
                 self.simplify_only_last, X_train, y_train)
 
         self.archive_ = archive
