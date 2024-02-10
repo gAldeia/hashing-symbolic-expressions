@@ -162,8 +162,9 @@ class NSGAIIEstimator(BaseEstimator):
         variator = Variator(
             creator.Individual, creator.FitnessMulti, toolbox,
             max_depth=self.max_depth, max_size=self.max_size,
-            rnd_generator=self.random, use_context=self.use_context, 
-            use_mab=self.use_mab).initialize(pset, X_train, y_train)
+            rnd_generator=self.random, use_context=self.use_context,
+            use_mab=self.use_mab).initialize(
+                pset, X_train, y_train, delete_at=self.pop_size)
         
         # Just to access it later 
         self.variator = variator

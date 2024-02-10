@@ -2,7 +2,7 @@
 
 models=()
 
-models+=("Vanilla,SimplifierBottomUp,SimplifierBottomUpMAB,SimplifierBottomUpCMAB")
+models+=("SimplifierBottomUpCMAB") # Vanilla,SimplifierBottomUp,SimplifierBottomUpMAB,
 # models+=("SimplifierBottomUpOnlyLast,SimplifierTopDownOnlyLast")
 
 # models+=("Vanilla")
@@ -26,5 +26,5 @@ do
     # -repeats: runs per seed. -n_trials: number of different seeds
     
     # python submit_jobs.py -repeats 1 -n_trials 10 -models "$model" -n_jobs 1 -data-dir ./data/lexicase_paper --slurm -time 6:00:00 -m 3000
-    python submit_jobs.py -repeats 1 -n_trials 10 -models "$model" -n_jobs 4 -data-dir ./data/lexicase_paper --local
+    python submit_jobs.py -repeats 1 -n_trials 10 -models "$model" -n_jobs 6 -data-dir ./data/lexicase_paper --local
 done

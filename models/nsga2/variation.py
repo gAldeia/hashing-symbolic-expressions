@@ -49,7 +49,7 @@ class Variator:
         return pred
     
 
-    def initialize(self, pset, X, y):
+    def initialize(self, pset, X, y, delete_at):
         
         # Variation operators: mutations (4 types, and a main function to wrap it).
         # mutations from deap returns a list with 1 individual
@@ -67,16 +67,16 @@ class Variator:
             if self.use_context:
                 self.lsh= lshash.LSHash(256, len(y))
 
-                hash_space = []
+                self.const_hash = int(self.lsh._hash(
+                    self.lsh.uniform_planes[0], np.zeros_like(y)))
+                
+                hash_space = [self.const_hash]                
                 for i in range(X.shape[1]):
                     hash = self.lsh._hash(self.lsh.uniform_planes[0], X[:, i])
                     hash_space.append( int(hash) )
 
-                self.const_hash = int(self.lsh._hash(
-                    self.lsh.uniform_planes[0], np.zeros_like(y)))
-                hash_space.append(self.const_hash)
                 hash_space.sort()
-
+                
                 context_spaces = ContextSpace(
                     np.linspace(0, 200, num=10_000), # error
                     np.linspace(0, 128, num=128),    # size
@@ -87,6 +87,7 @@ class Variator:
                     n_obj=2, n_arms=5, arm_labels=self.arm_labels,
                     rnd_generator=self.rnd_generator,
                     context_keys=['error', 'size', 'hash'], context_space=context_spaces,
+                    delete_at=delete_at,
                     Learner=UCB1Learner, Learner_kwargs={},
                 )
             else:
@@ -125,15 +126,19 @@ class Variator:
         offspring = []
         for ind1, ind2 in zip(parents[::2], parents[1::2]):
             for ind in [ind1, ind2]:
-                hash = self.const_hash
-                try: 
-                    h = self._predict_hash(ind, X, y)
-                    res = self.lsh.query(h, num_results=1, distance_func="euclidean")
-                    ((v, extra), d) = res[0]
-                
-                    hash = self.lsh._hash(self.lsh.uniform_planes[0], v)
-                except IndexError:
-                    pass
+                hash = None
+                if self.use_mab and self.use_context:
+                    try: 
+                        h = self._predict_hash(ind, X, y)
+                        res = self.lsh.query(
+                            h, num_results=1, distance_func="euclidean")
+                        
+                        ((v, extra), d) = res[0]
+                    
+                        hash = self.lsh._hash(self.lsh.uniform_planes[0], v)
+
+                    except IndexError:
+                        hash = self.const_hash
             
                 ctx = { 'gen'   : gen,
                         'size'  : len(ind),

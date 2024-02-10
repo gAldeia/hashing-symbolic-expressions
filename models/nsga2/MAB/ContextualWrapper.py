@@ -57,7 +57,7 @@ class ContextSpace():
 
 class ContextualWrapper(BaseLearner):
     def __init__(self, n_obj, n_arms, arm_labels, rnd_generator,        
-                 context_keys, context_space, 
+                 context_keys, context_space, delete_at,
                  Learner, Learner_kwargs={}, **kwargs):
         
         super(ContextualWrapper, self).__init__(
@@ -83,7 +83,7 @@ class ContextualWrapper(BaseLearner):
         
         # Set of active balls that are not full
         self.Astar = [ self.A[0] ]
-        self.T_0 = lambda r: 10
+        self.T_0 = lambda r: delete_at
 
         self.update_queue = []
 
@@ -143,6 +143,6 @@ class ContextualWrapper(BaseLearner):
         self.last_B_.counter = self.last_B_.counter + 1
 
         # remove ball if necessary
-        if self.last_B_.counter == self.T_0(self.last_B_.radius):
+        if self.last_B_.counter >= self.T_0(self.last_B_.radius):
             self.last_B_.active = False
             self.Astar.remove(self.last_B_)

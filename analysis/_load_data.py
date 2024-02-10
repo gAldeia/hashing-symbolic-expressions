@@ -22,7 +22,7 @@ sns.set_context("paper", font_scale=1.75, rc={"lines.linewidth": 1.5})
 results_path = "../results" #  "../_results (simplify at beggining of gen)" # 
 
 step_size = 10 # How many generations to ignore between two points in the plots
-skip_gens = 10 # How many initial generations to skip 
+skip_gens = 15 # How many initial generations to skip 
 tot_gens  = models_kwargs['max_gen']
 
 if not os.path.exists('../paper/figs'):
@@ -88,7 +88,7 @@ order = sorted(model_nice)
 order = ['Without simplify', 'Top Down', 'Bottom Up',
          'Top Down (only last)', 'Bottom Up (only last)']
 order = [
-    'Bottom Up', 'Bottom Up MAB', #'Top Down', 
+    'Bottom Up', 'Bottom Up MAB', 'Bottom Up cMAB', #'Top Down', 
     # 'Bottom Up (only last)', 'Top Down (only last)', 
     # 'Top Down 1e-0', 'Top Down 1e-1',
     # 'Top Down 1e-2', 'Top Down 1e-4',
