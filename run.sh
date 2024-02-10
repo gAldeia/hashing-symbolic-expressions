@@ -2,6 +2,7 @@
 
 models=()
 
+models+=("Vanilla,SmartVariation,SmartVariationSimplify")
 models+=("SimplifierBottomUpCMAB") # Vanilla,SimplifierBottomUp,SimplifierBottomUpMAB,
 # models+=("SimplifierBottomUpOnlyLast,SimplifierTopDownOnlyLast")
 
