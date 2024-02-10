@@ -11,7 +11,8 @@ from .deap_utils import PTC2_deap, node_functions, ERC100, get_complexity
 from .nsga2_deap import nsga2_deap
 from .optimizer import optimize_individual
 from .hash_simplifier import HashSimplifier
-from .variation import Variator
+from .variator_with_mabs import Variator
+from .variator_with_lsh import HashVariator
 
 from deap import base, creator, tools,gp
 
@@ -38,6 +39,7 @@ class NSGAIIEstimator(BaseEstimator):
         simplification_method="bottom_up",
         survival='offspring',
         use_mab=False,
+        smart_variation=False,
         use_context=False,
         simplification_tolerance=1e-15,
         simplify_only_last=False,
@@ -57,6 +59,7 @@ class NSGAIIEstimator(BaseEstimator):
         self.validation_size=validation_size
         self.simplify = simplify
         self.selection=selection
+        self.smart_variation=smart_variation
         self.use_context=use_context
         self.use_mab=use_mab
         self.simplification_method=simplification_method
@@ -163,8 +166,8 @@ class NSGAIIEstimator(BaseEstimator):
             creator.Individual, creator.FitnessMulti, toolbox,
             max_depth=self.max_depth, max_size=self.max_size,
             rnd_generator=self.random, use_context=self.use_context,
-            use_mab=self.use_mab).initialize(
-                pset, X_train, y_train, delete_at=self.pop_size)
+            use_mab=self.use_mab, smart_variation=self.smart_variation
+            ).initialize(pset, X_train, y_train, delete_at=self.pop_size)
         
         # Just to access it later 
         self.variator = variator

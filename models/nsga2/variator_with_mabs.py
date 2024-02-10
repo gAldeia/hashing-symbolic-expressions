@@ -10,14 +10,16 @@ import operator
 from .deap_utils import get_complexity
 from deap import base, creator, tools, gp
 
+from .variator_with_lsh import HashVariator
 from .MAB.Listener          import Listener
 from .MAB.UCB1Learner       import UCB1Learner
 from .MAB.ContextualWrapper import ContextSpace, ContextualWrapper
 
+# TODO: import variator with lsh and use it if smart_variation is set to true
 class Variator:
     def __init__(self, Individual, Fitness, toolbox, rnd_generator,
                  max_depth, max_size,
-                 use_mab=False, use_context=False):
+                 use_mab=False, use_context=False, smart_variation=False):
         
         self.Individual = Individual
         self.Fitness    = Fitness
@@ -27,8 +29,9 @@ class Variator:
 
         self.rnd_generator = rnd_generator
 
-        self.use_mab     = use_mab
-        self.use_context = use_context
+        self.use_mab         = use_mab
+        self.use_context     = use_context
+        self.smart_variation = smart_variation
         
         self.initialized = False
         
@@ -53,15 +56,37 @@ class Variator:
         
         # Variation operators: mutations (4 types, and a main function to wrap it).
         # mutations from deap returns a list with 1 individual
-        mutations = {
-            "point"   : partial(gp.mutNodeReplacement, pset=pset),
-            "delete"  : gp.mutShrink,
-            "subtree" : partial(gp.mutUniform, pset=pset, expr=self.toolbox.expr),
-            "insert"  : partial(gp.mutInsert, pset=pset)
-        }
+        if self.smart_variation:
+            self.variator_ = HashVariator(
+                self.Individual, self.toolbox, self.rnd_generator
+            ).init(pset, X, y)
 
-        # We need something with fixed order of the mutations
-        self.arm_labels = ['point', 'delete', 'subtree', 'insert', 'cx']
+            self.mutations = {
+                "lsh_mutate" : self.variator_.mutate
+            }
+
+            self.CXPB      = 1/5
+            self.mut_probs = { "lsh_mutate" : 1.0}
+            
+            # We need something with fixed order of the mutations
+            self.arm_labels = ['lsh_mutate', 'lsh_cx']
+        else:
+            self.mutations = {
+                "point"   : partial(gp.mutNodeReplacement, pset=pset),
+                "delete"  : gp.mutShrink,
+                "subtree" : partial(gp.mutUniform, pset=pset, expr=self.toolbox.expr),
+                "insert"  : partial(gp.mutInsert, pset=pset)
+            }
+
+            # Initializing probabilities with uniform distribution
+            self.CXPB      = 1/(1 + len(self.mutations))
+            self.mut_probs = { "point"   : 1/len(self.mutations),
+                               "delete"  : 1/len(self.mutations),
+                               "subtree" : 1/len(self.mutations),
+                               "insert"  : 1/len(self.mutations)}
+
+            # We need something with fixed order of the mutations
+            self.arm_labels = ['point', 'delete', 'subtree', 'insert', 'cx']
         
         if self.use_mab:
             if self.use_context:
@@ -84,38 +109,34 @@ class Variator:
                 )
 
                 self.mab = ContextualWrapper(
-                    n_obj=2, n_arms=5, arm_labels=self.arm_labels,
-                    rnd_generator=self.rnd_generator,
+                    n_obj=2, n_arms=len(self.arm_labels), 
+                    arm_labels=self.arm_labels, rnd_generator=self.rnd_generator,
                     context_keys=['error', 'size', 'hash'], context_space=context_spaces,
-                    delete_at=delete_at,
-                    Learner=UCB1Learner, Learner_kwargs={},
+                    delete_at=delete_at, Learner=UCB1Learner, Learner_kwargs={},
                 )
             else:
-                self.mab = UCB1Learner(n_obj=2, n_arms=5, arm_labels=self.arm_labels)
+                self.mab = UCB1Learner(
+                    n_obj=2, n_arms=len(self.arm_labels), arm_labels=self.arm_labels)
         else:
-            self.mab = Listener(n_obj=2, n_arms=5, arm_labels=self.arm_labels)
+            self.mab = Listener(
+                n_obj=2, n_arms=len(self.arm_labels), arm_labels=self.arm_labels)
 
         def mutate(ind, mut):
-            return mutations[mut](ind)
+            return self.mutations[mut](ind)
         
         self.toolbox.register("mutate", mutate)
         self.toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=self.max_depth))	
         self.toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=self.max_size))
         
         # Variation operators: crossover
-        def crossover(ind1, ind2):
-            return gp.cxOnePoint(ind1, ind2)
-
-        self.toolbox.register("crossover", crossover)
+        if self.smart_variation:
+            self.toolbox.register("crossover", self.variator_.cross)
+        else:        
+            def crossover(ind1, ind2):
+                return gp.cxOnePoint(ind1, ind2)
+            self.toolbox.register("crossover", crossover)
         self.toolbox.decorate("crossover", gp.staticLimit(key=operator.attrgetter("height"), max_value=self.max_depth))
         self.toolbox.decorate("crossover", gp.staticLimit(key=len, max_value=self.max_size))
-
-        # Initializing probabilities with uniform distribution
-        self.CXPB      = 1/(1 + len(mutations))
-        self.mut_probs = { "point"   : 1/len(mutations),
-                           "delete"  : 1/len(mutations),
-                           "subtree" : 1/len(mutations),
-                           "insert"  : 1/len(mutations)}
 
         self.toolbox.register("vary_pop", self.vary_pop)
         

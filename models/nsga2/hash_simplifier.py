@@ -14,7 +14,7 @@ class HashSimplifier:
     def __init__(self, Individual, Fitness, toolbox,
                  hash_len=256, tolerance=1e-20):
         self.Individual = Individual
-        self.Fitness = Fitness
+        self.Fitness = Fitness # not used
         self.toolbox = toolbox
         self.hash_len=hash_len # number of bits used for the hash
         self.tolerance=tolerance # the distance tolerance to consider two individual the same
