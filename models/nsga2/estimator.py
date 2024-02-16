@@ -44,6 +44,7 @@ class NSGAIIEstimator(BaseEstimator):
         simplification_tolerance=1e-15,
         simplify_only_last=False,
         verbosity=0,
+        warm_up=False,
         mode='regression',
         random_state=None,
         **kwargs
@@ -69,6 +70,7 @@ class NSGAIIEstimator(BaseEstimator):
         self.objectives = objectives
         self.random_state=random_state
         self.mode=mode
+        self.warm_up=warm_up
 
         self._is_fitted = False
 
@@ -187,6 +189,12 @@ class NSGAIIEstimator(BaseEstimator):
         
         # Just to access it later and get isomorphs
         self.simplifier = simplifier
+
+        if self.warm_up != 0:
+            warm_up_pop = toolbox.population(self.pop_size*10)
+            for ind in warm_up_pop: # fitting the coefficients
+                optimize_individual(toolbox, ind, X_train, y_train)
+            variator.warm_up(warm_up_pop)
 
         return toolbox
 

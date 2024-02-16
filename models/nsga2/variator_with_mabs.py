@@ -139,6 +139,11 @@ class Variator:
         
         return self
     
+    def warm_up(self, pop):
+        if self.smart_variation:
+            for ind in pop:
+                self.variator_._memoize_and_find_spots(ind, constants_not_allowed=True)
+        return 
 
     def vary_pop(self, parents, gen, X, y):
         offspring = []

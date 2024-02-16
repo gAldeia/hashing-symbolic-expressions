@@ -143,7 +143,7 @@ class HashVariator():
                 continue
 
             # We may have the hash memoized in all hashtables, so we update accordingly
-            results = self.lsh.query(h, num_results=self.num_hashtables, distance_func=self.distance_func)
+            results = self.lsh.query(h, num_results=self.num_hashtables*2, distance_func=self.distance_func)
             
             # We will memoize a new subtree
             if len(results)==0:
@@ -164,7 +164,7 @@ class HashVariator():
 
                 assert pop_index is not None, "Binary hash wasnt calculated."
 
-                if d == 0.0:
+                if True: #d == 0.0:
                     if pop_index not in self.pop_hash:
                         self.lsh.index( input_point=h, extra_data=pop_index )
                         self.pop_hash[pop_index] = []

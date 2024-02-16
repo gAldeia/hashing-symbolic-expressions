@@ -87,7 +87,7 @@ def nsga2_deap(toolbox, NGEN, MU, verbosity,
         # print(f'--------- gen {gen} parents -----------')
         # for ind in parents:
         #     print(ind.fitness, ind)
-
+        
         offspring = toolbox.vary_pop(parents, gen, X, y)
 
         # print(f'--------- gen {gen} offspring (pre fit) -----------')
