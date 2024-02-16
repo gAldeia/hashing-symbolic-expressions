@@ -34,7 +34,7 @@ class NSGAIIEstimator(BaseEstimator):
         initialization = 'uniform',
         pick_criteria = 'MCDM', 
         validation_size: float = 0.0, 
-        simplify=True,
+        simplify=False,
         selection='e_lexicase',
         simplification_method="bottom_up",
         survival='offspring',

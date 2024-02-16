@@ -25,7 +25,7 @@ def nsga2_deap(toolbox, NGEN, MU, verbosity,
     stats.register("max", np.max, axis=0)
 
     logbook = tools.Logbook()
-    logbook.header = ['gen', 'evals', 'best_size', 'n_simplifications', 'n_new_hashes'] + \
+    logbook.header = ['gen', 'evals', 'best_size', 'best_error', 'n_simplifications', 'n_new_hashes'] + \
                      [f"{stat} {partition} {objective}"
                          for stat in ['avg', 'med', 'std', 'min', 'max']
                          for partition in ['train', 'val']
@@ -61,9 +61,14 @@ def nsga2_deap(toolbox, NGEN, MU, verbosity,
         key=lambda index: ( pop[index].fitness.values[0]*pop[index].fitness.weights[0],
                             pop[index].fitness.values[1]*pop[index].fitness.weights[1]) )
     
+    best_idx = max(range(len(pop)),
+        key=lambda index: pop[index].fitness.values[0]*pop[index].fitness.weights[0])
+    
+    best_error = pop[best_idx].fitness.values[0]*pop[best_idx].fitness.weights[0]
+    
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(invalid_ind), best_size=pop[best_size].fitness.values[1],
-                   n_simplifications=n_simplifications,
+                   best_error=best_error, n_simplifications=n_simplifications,
                    n_new_hashes=n_new_hashes,
                    **record)
 
@@ -130,10 +135,16 @@ def nsga2_deap(toolbox, NGEN, MU, verbosity,
             key=lambda index: ( pop[index].fitness.values[0]*pop[index].fitness.weights[0],
                                 pop[index].fitness.values[1]*pop[index].fitness.weights[1]) )
         
+        best_idx = max(range(len(pop)),
+            key=lambda index: pop[index].fitness.values[0]*pop[index].fitness.weights[0])
+        
+        best_error = pop[best_idx].fitness.values[0]*pop[best_idx].fitness.weights[0]
+        # print(f"best sol (fitness {pop[best_idx].fitness.values}) {pop[best_idx]}")
+
         # Log and verbose
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(offspring), best_size=pop[best_size].fitness.values[1],
-                       n_simplifications=n_simplifications,
+                       best_error=best_error, n_simplifications=n_simplifications,
                        n_new_hashes=n_new_hashes,
                        **record)
                 

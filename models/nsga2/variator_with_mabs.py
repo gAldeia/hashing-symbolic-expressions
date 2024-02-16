@@ -45,11 +45,9 @@ class Variator:
         expr = self.toolbox.compile(expr=ind)
         pred = np.array([expr(*x) for x in X])
 
-        # constant predictions, should be mapped into dummy_ind hash
-        if np.std(pred) <= 1e-10:
-           return np.ones_like(pred)
+        stardized_pred = (pred - np.mean(pred)) + 1e-8
         
-        return pred
+        return stardized_pred
     
 
     def initialize(self, pset, X, y, delete_at):
@@ -62,14 +60,15 @@ class Variator:
             ).init(pset, X, y)
 
             self.mutations = {
-                "lsh_mutate" : self.variator_.mutate
+                "lsh_mutate" : self.variator_.mutate,
+                "subtree"    : self.variator_.subtree,
             }
 
-            self.CXPB      = 1/5
-            self.mut_probs = { "lsh_mutate" : 1.0}
+            self.CXPB      = 1/3
+            self.mut_probs = { "lsh_mutate" : 1/2, 'subtree' : 1/2}
             
             # We need something with fixed order of the mutations
-            self.arm_labels = ['lsh_mutate', 'lsh_cx']
+            self.arm_labels = ['lsh_mutate', 'subtree', 'cx']
         else:
             self.mutations = {
                 "point"   : partial(gp.mutNodeReplacement, pset=pset),
@@ -90,18 +89,16 @@ class Variator:
         
         if self.use_mab:
             if self.use_context:
-                self.lsh= lshash.LSHash(256, len(y))
+                self.lsh= lshash.LSHash(256, len(y), num_hashtables=5)
 
-                self.const_hash = int(self.lsh._hash(
-                    self.lsh.uniform_planes[0], np.zeros_like(y)))
+                self.const_hash = 1 # Skip zero
+                self.lsh.index(np.zeros_like(y), extra_data=self.const_hash)
                 
-                hash_space = [self.const_hash]                
+                hash_space = [self.const_hash]
                 for i in range(X.shape[1]):
-                    hash = self.lsh._hash(self.lsh.uniform_planes[0], X[:, i])
-                    hash_space.append( int(hash) )
+                    self.lsh.index(X[:, i], extra_data=i+2)
+                    hash_space.append(i+2)
 
-                hash_space.sort()
-                
                 context_spaces = ContextSpace(
                     np.linspace(0, 200, num=10_000), # error
                     np.linspace(0, 128, num=128),    # size
@@ -147,24 +144,21 @@ class Variator:
         offspring = []
         for ind1, ind2 in zip(parents[::2], parents[1::2]):
             for ind in [ind1, ind2]:
-                hash = None
+                pop_index = None
                 if self.use_mab and self.use_context:
-                    try: 
+                    try:
                         h = self._predict_hash(ind, X, y)
-                        res = self.lsh.query(
-                            h, num_results=1, distance_func="euclidean")
-                        
-                        ((v, extra), d) = res[0]
+                        res = self.lsh.query(h, num_results=3, distance_func="l1norm")
                     
-                        hash = self.lsh._hash(self.lsh.uniform_planes[0], v)
-
+                        # print(res)
+                        h, pop_index = res[0][0]
                     except IndexError:
-                        hash = self.const_hash
+                        pop_index = self.const_hash
             
                 ctx = { 'gen'   : gen,
                         'size'  : len(ind),
                         'error' : ind.fitness.values[0],
-                        'hash'  : hash}
+                        'hash'  : pop_index}
                 
                 if self.use_mab:
                     variation = self.mab.choose_arm(ctx)

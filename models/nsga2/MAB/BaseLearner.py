@@ -87,6 +87,10 @@ class BaseLearner:
         # Rewards are always expected to be an array (even when it is one value)
         reward = 1.0 if (delta_costs[0]<0) else 0
 
+        if reward == 0 and delta_costs[0]< 1e-6:
+            return 0.5
+        return reward
+    
         # dominance based reward
         if eps is None:
             eps = [0.0 for _ in delta_costs] # one for each objective
