@@ -88,11 +88,24 @@ order = sorted(model_nice)
 order = ['Without simplify', 'Top Down', 'Bottom Up',
          'Top Down (only last)', 'Bottom Up (only last)']
 order = [
-    'Bottom Up', 'Bottom Up MAB', 'Bottom Up cMAB', #'Top Down', 
+    # Experiment with smart variation operator
+    'LSH Variator', 'LSH Variator with simplify', 
+     'LSH Variator with MAB', 'LSH Variator with simplify and MAB',
+
+    # experiment with mabs
+    # 'Bottom Up', 'Bottom Up MAB', 'Bottom Up cMAB',
+
+    # Experiment paper
+    # 'Bottom Up','Top Down',
+
+    # Experiment with simplification only at the end
     # 'Bottom Up (only last)', 'Top Down (only last)', 
+
+    # Experiment varying tolerance
     # 'Top Down 1e-0', 'Top Down 1e-1',
     # 'Top Down 1e-2', 'Top Down 1e-4',
-    'Without simplify', 
+
+    'Bottom Up', 'Without simplify', 
 ]
 # order = [
 #     'Top Down', 'Top Down (only last)',
