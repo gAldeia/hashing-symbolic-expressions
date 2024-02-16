@@ -1,5 +1,5 @@
 kwargs = {
-    'pop_size'       : 40, 
+    'pop_size'       : 80, 
     'max_gen'        : 101,
     'max_depth'      : 7,
     'max_size'       : 2**7,
@@ -9,7 +9,7 @@ kwargs = {
     'pick_criteria'  : 'error',
     'validation_size': 0.33,
     'verbosity'      : 0,
-    'survival'       : 'tournament', #'nsga2', 'offspring'
+    'survival'       : 'tournament', #'nsga2', 'offspring', 'tournament'
     'simplification_tolerance' : 1e-2,
     'functions'      : [
                         'div', 'add', 'sub', 'mul',
