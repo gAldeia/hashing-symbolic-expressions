@@ -147,7 +147,7 @@ class NSGAIIEstimator(BaseEstimator):
         toolbox.register("evaluateValidation", self._fitness_validation, X=X_val, y=y_val)
 
         # Selection and survival steps 
-        toolbox.register("get_objectives", lambda: ['error', 'size'])
+        toolbox.register("get_objectives", lambda: self.objectives)
 
         if self.survival == 'nsga2':
             #toolbox.register("select", tools.selAutomaticEpsilonLexicase)

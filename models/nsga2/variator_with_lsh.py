@@ -15,11 +15,11 @@ from sklearn.preprocessing import MinMaxScaler
 # implements variation operators with LSH
 class HashVariator():
     def __init__(self, Individual, toolbox, rnd_generator, hash_len=256):
-        self.toolbox       = toolbox
-        self.Individual    = Individual
-        self.rnd_generator = rnd_generator
-        self.hash_len      = hash_len
-        self.distance_func = "l1norm"
+        self.toolbox        = toolbox
+        self.Individual     = Individual
+        self.rnd_generator  = rnd_generator
+        self.hash_len       = hash_len
+        self.distance_func  = "l1norm"
         self.num_hashtables = 5
 
 
@@ -130,6 +130,7 @@ class HashVariator():
         for idx_node, node in enumerate(ind):
 
             # mutation: we dont want to replace a const with anything else of similar hash (it would be irrelevant or bloated const)
+            # (or maybe we want? nah we dont)
             if isinstance(type(node), gp.MetaEphemeral) \
             and constants_not_allowed:
                 continue
@@ -169,6 +170,9 @@ class HashVariator():
                         self.lsh.index( input_point=h, extra_data=pop_index )
                         self.pop_hash[pop_index] = []
 
+                    # This may get expensive for longer runs. Adding repeated elements
+                    # would be equivalent to have a probability weight proportional
+                    # to occurence of the subtree
                     if not any([self._is_equal(ind_subtree, pop_subtree) 
                                 for pop_subtree in self.pop_hash[pop_index]]):
                         self.pop_hash[pop_index].append(ind_subtree)
@@ -238,9 +242,9 @@ class HashVariator():
 
 
     def subtree(self, ind):
+        self._memoize_and_find_spots(ind, constants_not_allowed=True)
+
         xmen, = gp.mutUniform(ind, pset=self.pset, expr=self.toolbox.expr)
-        
-        self._memoize_and_find_spots(xmen, constants_not_allowed=True)
 
         return xmen,
         

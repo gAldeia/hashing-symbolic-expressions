@@ -38,6 +38,9 @@ class Variator:
         self.key = lambda ind: len(ind)
         #self.key = lambda ind: get_complexity(ind)
 
+        # Hardcoding this because it makes the algorithm slower, and is for development purposes
+        self.log_file = False
+
 
     def _predict_hash(self, ind, X, y):
         # auxiliary function to compile an individual and evaluate it on the data
@@ -52,6 +55,12 @@ class Variator:
 
     def initialize(self, pset, X, y, delete_at):
         
+        if self.log_file is not None:
+            self.log = {c:[] for c in
+                        ['gen', 'variation', 'euclid dist prediction'] + \
+                        [f"delta {obj}"
+                         for obj in self.toolbox.get_objectives()]}
+
         # Variation operators: mutations (4 types, and a main function to wrap it).
         # mutations from deap returns a list with 1 individual
         if self.smart_variation:
@@ -64,7 +73,7 @@ class Variator:
                 "subtree"    : self.variator_.subtree,
             }
 
-            self.CXPB      = 1/3
+            self.CXPB      = 1/5
             self.mut_probs = { "lsh_mutate" : 1/2, 'subtree' : 1/2}
             
             # We need something with fixed order of the mutations
@@ -126,7 +135,7 @@ class Variator:
         self.toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=self.max_size))
         
         # Variation operators: crossover
-        if self.smart_variation:
+        if self.smart_variation and False:
             self.toolbox.register("crossover", self.variator_.cross)
         else:        
             def crossover(ind1, ind2):
@@ -139,11 +148,13 @@ class Variator:
         
         return self
     
+    
     def warm_up(self, pop):
         if self.smart_variation:
             for ind in pop:
                 self.variator_._memoize_and_find_spots(ind, constants_not_allowed=True)
         return 
+    
 
     def vary_pop(self, parents, gen, X, y):
         offspring = []
@@ -172,7 +183,8 @@ class Variator:
                     if self.rnd_generator.random() > self.CXPB:
                         variation = self.rnd_generator.choice(
                             list(self.mut_probs.keys()),
-                            p=list(self.mut_probs.values()) )
+                            p=list(self.mut_probs.values())
+                        )
                 
                 off = self.toolbox.clone(ind1)
                 if  variation == 'cx':
@@ -189,6 +201,32 @@ class Variator:
                 # Refit the individual after variation
                 off.fitness.values = self.toolbox.evaluate(off)
                 delta_costs = np.subtract(ind.fitness.values, off.fitness.values)
+
+                if self.log_file is not None:
+                    # Finding the spot where variation occured
+                    variation_index = 0
+                    for index, (node1, node2) in enumerate(zip(ind[:], off[:])):
+                        if  isinstance(type(node1), gp.MetaEphemeral) \
+                        and isinstance(type(node2), gp.MetaEphemeral) :
+                            continue
+                        elif node1.name == node2.name:
+                            continue
+                        else:
+                            variation_index = index
+                            break
+                        
+                    original_vector = self._predict_hash(ind, X, y)
+                    new_vector      = self._predict_hash(off, X, y)
+
+                    euclid_dist = np.linalg.norm(original_vector-new_vector)
+
+                    self.log['gen'].append(gen)
+                    self.log['variation'].append(variation)
+                    self.log['euclid dist prediction'].append(euclid_dist)
+
+                    for obj, val in zip(self.toolbox.get_objectives(),
+                                        delta_costs*ind.fitness.weights):
+                        self.log[f"delta {obj}"].append(val) 
 
                 # In case our MAB is the listener, it will only log
                 self.mab.update(
