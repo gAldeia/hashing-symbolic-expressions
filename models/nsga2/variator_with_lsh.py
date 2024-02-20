@@ -19,8 +19,9 @@ class HashVariator():
         self.Individual     = Individual
         self.rnd_generator  = rnd_generator
         self.hash_len       = hash_len
-        self.distance_func  = "l1norm"
+        self.distance_func  = "euclidean"
         self.num_hashtables = 5
+        self.keep_learning  = True
 
 
     def _is_equal(self, ind1, ind2):
@@ -45,6 +46,8 @@ class HashVariator():
 
         expr = self.toolbox.compile(expr=ind)
         pred = np.array([expr(*x) for x in X])
+
+        return pred
 
         # Approach 1
         #normalized_pred = zscore(pred) + 1e-8
@@ -121,7 +124,7 @@ class HashVariator():
         return self
     
 
-    def _memoize_and_find_spots(self, ind, constants_not_allowed=False):
+    def _memoize_and_find_spots(self, ind, constants_not_allowed=False, keep_learning=True):
         # it doesnt matter the order we simplify.
         # only subtrees that does not eval to nan will be stored and used to replace
         candidate_idxs = []
@@ -144,7 +147,7 @@ class HashVariator():
                 continue
 
             # We may have the hash memoized in all hashtables, so we update accordingly
-            results = self.lsh.query(h, num_results=self.num_hashtables*2, distance_func=self.distance_func)
+            results = self.lsh.query(h, num_results=self.num_hashtables*3,distance_func=self.distance_func)
             
             # We will memoize a new subtree
             if len(results)==0:
@@ -166,23 +169,24 @@ class HashVariator():
                 assert pop_index is not None, "Binary hash wasnt calculated."
 
                 if True: #d == 0.0:
-                    if pop_index not in self.pop_hash:
-                        self.lsh.index( input_point=h, extra_data=pop_index )
-                        self.pop_hash[pop_index] = []
+                    if keep_learning:
+                        if pop_index not in self.pop_hash:
+                            self.lsh.index( input_point=h, extra_data=pop_index )
+                            self.pop_hash[pop_index] = []
 
-                    # This may get expensive for longer runs. Adding repeated elements
-                    # would be equivalent to have a probability weight proportional
-                    # to occurence of the subtree
-                    if not any([self._is_equal(ind_subtree, pop_subtree) 
-                                for pop_subtree in self.pop_hash[pop_index]]):
-                        self.pop_hash[pop_index].append(ind_subtree)
-                    else:
-                        # print(str(ind_subtree), "already in candidates:")
-                        # for others in self.pop_hash[pop_index]:
-                        #     print("\t -", str(others))
-                        pass
+                        # This may get expensive for longer runs. Adding repeated elements
+                        # would be equivalent to have a probability weight proportional
+                        # to occurence of the subtree
+                        if not any([self._is_equal(ind_subtree, pop_subtree) 
+                                    for pop_subtree in self.pop_hash[pop_index]]):
+                            self.pop_hash[pop_index].append(ind_subtree)
+                        else:
+                            # print(str(ind_subtree), "already in candidates:")
+                            # for others in self.pop_hash[pop_index]:
+                            #     print("\t -", str(others))
+                            pass
 
-                    if len(self.pop_hash[pop_index])>1:
+                    if pop_index in self.pop_hash and len(self.pop_hash[pop_index])>1:
                         # print(f"starting to index. {len(h)}, {pop_index}")
                         append=True
                 else:
@@ -200,7 +204,8 @@ class HashVariator():
         # print("original:", str(ind))
 
         # ind is alredy a clone
-        candidate_idxs = self._memoize_and_find_spots(ind, constants_not_allowed=True)
+        candidate_idxs = self._memoize_and_find_spots(ind, constants_not_allowed=True, 
+                                                      keep_learning=self.keep_learning)
 
         if len(candidate_idxs) == 0:
             # print("no candidates in mut")
@@ -218,8 +223,10 @@ class HashVariator():
 
             # Closest hash
             # Should always work, because memoize_and_find_spots worked with the subtree semantics
-            res = self.lsh.query(spot_vector, num_results=1, distance_func=self.distance_func)
-            spot_vector, pop_index = res[0][0]
+            res = self.lsh.query(spot_vector, num_results=self.num_hashtables*3, distance_func=self.distance_func)
+
+            # in case we have more than one candidate, we sample one. Since we add the expression into three collections, we will search for at least 3
+            spot_vector, pop_index = res[np.random.choice(len(res))][0]
 
             # Same hash
             replacements = [i for i in range(len(self.pop_hash[pop_index]))
@@ -242,7 +249,8 @@ class HashVariator():
 
 
     def subtree(self, ind):
-        self._memoize_and_find_spots(ind, constants_not_allowed=True)
+        _ = self._memoize_and_find_spots(ind, constants_not_allowed=True, 
+                                         keep_learning=self.keep_learning)
 
         xmen, = gp.mutUniform(ind, pset=self.pset, expr=self.toolbox.expr)
 
@@ -256,7 +264,7 @@ class HashVariator():
             # print("original:", str(ind))
 
             # ind is alredy a clone
-            _ = self._memoize_and_find_spots(ind)
+            _ = self._memoize_and_find_spots(ind, keep_learning=self.keep_learning)
 
             # Every node is a candidate (we wont be using its hash to get a new subtree)
             candidate_idxs = list(range(len(ind)))

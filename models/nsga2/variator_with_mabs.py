@@ -150,9 +150,12 @@ class Variator:
     
     
     def warm_up(self, pop):
+        # TODO: warm up could be done with only full expressions
         if self.smart_variation:
             for ind in pop:
                 self.variator_._memoize_and_find_spots(ind, constants_not_allowed=True)
+
+        self.variator_.keep_learning = False
         return 
     
 
