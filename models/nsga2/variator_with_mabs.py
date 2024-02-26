@@ -69,15 +69,23 @@ class Variator:
             ).init(pset, X, y)
 
             self.mutations = {
-                "lsh_mutate" : self.variator_.mutate,
-                "subtree"    : self.variator_.subtree,
+                "point"   : partial(gp.mutNodeReplacement, pset=pset),
+                "delete"  : gp.mutShrink,
+                # "subtree" : partial(gp.mutUniform, pset=pset, expr=self.toolbox.expr),
+                "insert"  : partial(gp.mutInsert, pset=pset),
+                "lsh_subtree" : self.variator_.mutate,
+                # "subtree"    : self.variator_.subtree,
             }
 
             self.CXPB      = 1/5
-            self.mut_probs = { "lsh_mutate" : 1/2, 'subtree' : 1/2}
+            self.mut_probs = { "lsh_subtree" : 1/len(self.mutations),
+                               "point"      : 1/len(self.mutations),
+                               "delete"     : 1/len(self.mutations),
+                               #"subtree"    : 1/len(self.mutations),
+                               "insert"     : 1/len(self.mutations)}
             
             # We need something with fixed order of the mutations
-            self.arm_labels = ['lsh_mutate', 'subtree', 'cx']
+            self.arm_labels = ['lsh_subtree', 'subtree', 'cx']
         else:
             self.mutations = {
                 "point"   : partial(gp.mutNodeReplacement, pset=pset),
@@ -141,6 +149,7 @@ class Variator:
             def crossover(ind1, ind2):
                 return gp.cxOnePoint(ind1, ind2)
             self.toolbox.register("crossover", crossover)
+            
         self.toolbox.decorate("crossover", gp.staticLimit(key=operator.attrgetter("height"), max_value=self.max_depth))
         self.toolbox.decorate("crossover", gp.staticLimit(key=len, max_value=self.max_size))
 
