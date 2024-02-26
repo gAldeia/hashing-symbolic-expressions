@@ -16,7 +16,7 @@ if __name__ == '__main__':
                         default="evaluate_model",help=".py experiment file")
     parser.add_argument('-dataset',action='store',dest='DATASET',type=str,              
                         default=(
-                            'd_airfoil,'
+                            # 'd_airfoil,'
                             'd_concrete,'
                             'd_enc,'
                             'd_enh,'
