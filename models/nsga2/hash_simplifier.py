@@ -21,6 +21,7 @@ class HashSimplifier:
         self.tolerance = tolerance # the distance tolerance to consider two individual the same
         self.initialized = False
 
+        self.num_hashtables = 5
         self.distance_func = "l1norm"
         self.key = lambda ind: len(ind)
         #self.key = lambda ind: get_complexity(ind)
@@ -43,6 +44,19 @@ class HashSimplifier:
         return True
     
 
+    def _is_in(self, ind, pop_index):
+        # print("checking for similarity")
+        for idx, tree in enumerate(self.pop_hash[pop_index]):
+            # Finding indexes where the size matches
+            if len(ind) > len(tree):
+                continue
+            elif len(ind) < len(tree):
+                break
+            elif self._is_equal(ind, tree):
+                return idx
+        return -1
+    
+
     def _predict_hash(self, ind, X, y):
         # auxiliary function to compile an individual and evaluate it on the data
 
@@ -61,7 +75,7 @@ class HashSimplifier:
         # Use the first individual to extract info to initialize the table
 
         # Creating our locality sensitive hashing table
-        self.lsh = lshash.LSHash(self.hash_len, len(y), num_hashtables=5)
+        self.lsh = lshash.LSHash(self.hash_len, len(y), num_hashtables=self.num_hashtables)
         
         # This is the memoization part
         # Adding the first value into the memoization
@@ -148,7 +162,7 @@ class HashSimplifier:
                 pop_index, d = None, np.inf
                 try: 
                     # Querying for the closest result
-                    res = self.lsh.query(h, num_results=3, distance_func=self.distance_func)
+                    res = self.lsh.query(h, num_results=self.num_hashtables, distance_func=self.distance_func)
                     
                     # print(f'       - query {res}')
                     data, d      = res[0]
@@ -189,8 +203,7 @@ class HashSimplifier:
                         pass
 
                     # avoid repeated hashes (this is good for statistics)
-                    if not any([self._is_equal(ind_subtree, pop_subtree) 
-                        for pop_subtree in self.pop_hash[pop_index]]):
+                    if self._is_in(ind_subtree, pop_index) == -1:
                     
                         self.n_new_hashes += 1
                         bisect.insort(
@@ -255,7 +268,7 @@ class HashSimplifier:
                 pop_index, d = None, np.inf
                 try:
                     # Querying for the closest result
-                    res = self.lsh.query(h, num_results=3, distance_func=self.distance_func)
+                    res = self.lsh.query(h, num_results=self.num_hashtables, distance_func=self.distance_func)
                     
                     data, d      = res[0]
                     v, pop_index = data
@@ -275,8 +288,7 @@ class HashSimplifier:
                         indexes = range(idx_node+1, len(ind)) #[1:]
 
                     # avoid repeated hashes (this is good for statistics)
-                    if not any([self._is_equal(ind_subtree, pop_subtree) 
-                        for pop_subtree in self.pop_hash[pop_index]]):
+                    if self._is_in(ind_subtree, pop_index) == -1:
                         
                         self.n_new_hashes += 1
                         bisect.insort(
