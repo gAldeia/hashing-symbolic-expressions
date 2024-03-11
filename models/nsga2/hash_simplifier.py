@@ -7,6 +7,7 @@ import bisect
 import warnings
 import numpy as np
 from deap import gp
+from cachetools import LRUCache
 
 from .deap_utils import get_complexity
 
@@ -20,6 +21,8 @@ class HashSimplifier:
         self.hash_len = hash_len # number of bits used for the hash
         self.tolerance = tolerance # the distance tolerance to consider two individual the same
         self.initialized = False
+
+        self.expression_dict = LRUCache(maxsize=100)
 
         self.num_hashtables = 5
         self.distance_func = "l1norm"
@@ -152,8 +155,14 @@ class HashSimplifier:
                 # print(f'     - cast into ind {ind_subtree}')
 
                 # Semantics to be hashed
-                h = self._predict_hash(ind_subtree, X, y)
-                # print(f'     - semantics {h[:3]}')
+                h = None
+                expression = str(ind_subtree)
+                if expression in self.expression_dict:
+                    h = self.expression_dict[expression]
+                else:
+                    h = self._predict_hash(ind_subtree, X, y)
+                    # print(f'     - semantics {h[:3]}')
+                    self.expression_dict[expression] = h
 
                 if not np.all(np.isfinite(h)):
                     # print(f'     - bad semantics')
@@ -260,7 +269,14 @@ class HashSimplifier:
                 ind_subtree = self.Individual(self.toolbox.clone(ind_subtree)[:])
 
                 # Semantics to be hashed
-                h = self._predict_hash(ind_subtree, X, y)
+                h = None
+                expression = str(ind_subtree)
+                if expression in self.expression_dict:
+                    h = self.expression_dict[expression]
+                else:
+                    h = self._predict_hash(ind_subtree, X, y)
+                    # print(f'     - semantics {h[:3]}')
+                    self.expression_dict[expression] = h
 
                 if not np.all(np.isfinite(h)):
                     continue
