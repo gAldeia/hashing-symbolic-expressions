@@ -19,6 +19,11 @@ pd.set_option('display.max_colwidth', None)
 sns.set(style="ticks", palette='colorblind')
 sns.set_context("paper", font_scale=1.75, rc={"lines.linewidth": 1.5})
 
+# using Typ1/trueType fonts
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
+
 results_path = "../results" #  "../_results (simplify at beggining of gen)" # 
 
 step_size = 10 # How many generations to ignore between two points in the plots
