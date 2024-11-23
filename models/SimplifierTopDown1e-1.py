@@ -5,8 +5,8 @@ reg = NSGAIIRegressor(
     **{**kwargs,
        **{'simplify'              : True,
           'simplification_method' : 'top_down',
-           'simplify_only_last'   : True      }
+          'simplification_tolerance' : 1e-1   }
     }
 ) 
 
-name = "Top Down (only last)"
+name = "Top Down 1e-1"

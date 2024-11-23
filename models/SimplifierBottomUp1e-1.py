@@ -3,11 +3,10 @@ from ._default_kwargs import kwargs
 
 reg = NSGAIIRegressor(
     **{**kwargs,
-       **{'smart_variation'       : True,
-          'simplify'              : True,
+       **{'simplify'              : True,
           'simplification_method' : 'bottom_up',
-          'use_mab'               : True }
+          'simplification_tolerance' : 1e-1   }
     }
 ) 
 
-name = "LSH Variator with simplify and MAB"
+name = "Bottom Up 1e-1"

@@ -5,8 +5,8 @@ reg = NSGAIIRegressor(
     **{**kwargs,
        **{'simplify'              : True,
           'simplification_method' : 'bottom_up',
-           'use_mab'              : True }
+          'simplification_tolerance' : 1e-5   }
     }
 ) 
 
-name = "Bottom Up MAB"
+name = "Bottom Up 1e-5"
