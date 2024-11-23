@@ -11,6 +11,8 @@ from pmlb import fetch_data
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error as mse
 from  models.nsga2.deap_utils import get_complexity
+from numpy import (array, dot, arccos, clip)
+from numpy.linalg import norm
 
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -62,6 +64,45 @@ def save_evolution(estimator, name, dataset, random_state, rdir, repeat):
     ).to_csv(logbook_filename, index=False)
 
 
+def save_hashes(estimator, name, dataset, random_state, rdir, repeat, data_dir):
+    X_train, X_test, y_train, y_test = read_data(dataset,random_state,data_dir)
+
+    frames = []
+    for key in list(estimator.simplifier.pop_hash.keys()):
+        toolbox = estimator.toolbox_
+        replace_expr = toolbox.compile(expr=estimator.simplifier.pop_hash[key][0])
+
+        for ind in estimator.simplifier.pop_hash[key]:
+            expr = toolbox.compile(expr=ind)
+        
+            pred = np.nan_to_num([expr(*x) for x in X_train])
+            pred_replace = np.nan_to_num([replace_expr(*x) for x in X_train])
+            rmse_train = mse(pred, pred_replace, squared=False)
+            cos_train = arccos(clip(dot(pred,pred_replace)/norm(pred)/norm(pred_replace), -1, 1))
+
+            pred = np.nan_to_num([expr(*x) for x in X_test])
+            pred_replace = np.nan_to_num([replace_expr(*x) for x in X_test])
+            rmse_test = mse(pred, pred_replace, squared=False)
+            cos_test = arccos(clip(dot(pred,pred_replace)/norm(pred)/norm(pred_replace), -1, 1))
+            
+            frames.append({
+                'key':key,
+                'simplified_to':str(estimator.simplifier.pop_hash[key][0]).replace("ARG", "x_"),
+                'expression':str(ind).replace("ARG", "x_"),
+                'rmse_train':rmse_train,
+                'cos_train':cos_train,
+                'rmse_test':rmse_test,
+                'cos_test':cos_test})
+
+    hashes_filename = rdir + '_'.join([dataset, 
+                                        name, 
+                                        str(repeat), 
+                                        str(random_state),
+                                        "hashes"]) + '.csv'
+    
+    pd.DataFrame.from_records(frames).to_csv(hashes_filename, index=False)
+
+
 def evaluate_model(
     estimator, name, dataset, random_state, rdir, repeat, data_dir='./'):
     """Evaluates estimator by training and predicting on the dataset."""
@@ -84,6 +125,9 @@ def evaluate_model(
     if hasattr(estimator, 'logbook_') and estimator.logbook_ is not None:
         save_evolution(estimator,name,dataset,random_state,rdir,repeat)
 
+    if hasattr(estimator.simplifier, 'pop_hash'):
+        save_hashes(estimator,name,dataset,random_state,rdir,repeat,data_dir)
+
     if "NSGAII" in estimator.__class__.__name__:
         model      = str(estimator.best_estimator_).replace("ARG", "x_")
         size       = len(estimator.best_estimator_)
@@ -105,6 +149,7 @@ def evaluate_model(
     results['dataset']      = dataset
     results['RunID']        = repeat
     results['random_state'] = random_state
+    results['arch_size']    = len(estimator.archive_)
     results['time']         = end_time
     results['date']         = datetime.today().strftime('%m-%d-%Y %H:%M:%S')
 
